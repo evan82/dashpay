@@ -17,7 +17,6 @@ define(['bitcoinjs-lib-real', 'convert'], function(Bitcoin, Convert) {
     }
     Bitcoin.address.fromInputScript = function(script, network) {
       network = network || Bitcoin.networks.bitcoin
-
       var type = Bitcoin.scripts.classifyInput(script)
 
       if (type === 'pubkey') {
@@ -37,7 +36,7 @@ define(['bitcoinjs-lib-real', 'convert'], function(Bitcoin, Convert) {
     }
 
     Bitcoin.address.getVersion = function(address) {
-        return Bitcoin.base58check.decode(address).readUInt8(0);
+        return Bitcoin.fromBase58Check(address).readUInt8(0);
     }
 
     Bitcoin.ECPair.fromBytes = function(bytes, compressed) {

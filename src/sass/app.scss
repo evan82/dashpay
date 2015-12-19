@@ -1,16 +1,17 @@
 @import "normalize";
 
 
-$primary-color: rgba(30, 190, 90,0.9) !default;
-$primary-color-dark: rgba(30, 170, 80,0.9);
-$alternative-color: #002B29;
-$secondary-color: #333;
+$primary-color: rgba(30, 117, 180,0.9) !default;
+$primary-color-dark: rgba(20, 97, 170,0.9);
+$alternative-color: silver;
+$hover-color: aliceblue;
+$secondary-color: lightslategray;
 $alert-color: #c92441;
 $success-color: #43AC6A;
 $dark-transparent: rgba(0,0,0,0.3);
 $darker-transparent: rgba(0,0,0,0.4);
-$light-transparent: rgba(100,100,100,0.2);
-
+$light-transparent: rgba(255,255,255,0.8);
+$body-bg: #fff;
 @import "settings";
 @import "foundation";
 @import "toaster";
@@ -18,8 +19,8 @@ $light-transparent: rgba(100,100,100,0.2);
 @import "fonts";
 
 
-html, body:not(.popupbody) { height: 100%; overflow-y: hidden; }
-html.popup { width: auto; height: auto; max-height: 100%; overflow: hidden; }
+html, body:not(.popupbody) { height: 100%; overflow-y: hidden; background: #fff; }
+html.popup { width: auto; height: auto; max-height: 100%; overflow: hidden; background: #fff; }
 
 .editable-wrap {display:inline-block;white-space:nowrap;margin:0}
 .editable-wrap .editable-controls,.editable-wrap .editable-error, .editable-wrap .editable-controls>input {margin-bottom:0}
@@ -28,14 +29,16 @@ html.popup { width: auto; height: auto; max-height: 100%; overflow: hidden; }
 
 *:focus { outline: 0; } /* Remove webkit's default outline */
 
-a, input[type="text"], span, textarea { text-rendering: geometricPrecision; }
+input[type="text"] { text-rendering: geometricPrecision; color: $secondary-color; background: none;  border: 1px solid $hover-color;}
+span, textarea { text-rendering: geometricPrecision; color: $secondary-color; background: none; border: none;}
+
 
 div.modal-ng {
 	z-index: 20;
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	background: rgba(0,0,0,0.7);
+	background: rgba(0,0,0,0.2);
 	-webkit-transform: translate3d(0,0,0);
 	opacity: 1;
 }
@@ -52,8 +55,9 @@ span.tooltip.fade.in { opacity: 1; }
 
 
 .popupcontainer .panel {
-	background: #333;
-	a { color: white; }
+	background: #fff;
+	a { color: #333; 
+    border: 0px solid #fff;}
 }
 .popupcontainer {
 	height: auto;
@@ -76,12 +80,13 @@ div.tab-scroller { padding-top: 1em; }
 
 div.scroller {
 	padding-top: 50px;
-	background: black;
+	background: silver;
 	height: 100%;
 	min-height: 100%;
 	width: 100%;
 	overflow-y: scroll;
 	overflow-x: hidden;
+    color: #333;
 }
 
 span.input-status {
@@ -148,7 +153,11 @@ button:active .button:active, table tr:nth-child(odd) a.button:active {
 	transition: none;
  }
 
-.button.square { margin: 0; padding: 0; height: 39px; }
+.button.square { margin: 0; padding: 0; height: 39px;}
+a.fa { background: $primary-color; color: white; border: 1px solid $primary-color;}
+a.fa:hover { background: $hover-color; color: $primary-color; border: 1px solid $primary-color;}
+a.fa.active { background: $primary-color-dark; color: white; border: 1px solid $primary-color;}
+
 
 .button.square:before, button.square:before { position: absolute; top: 50%; left: 50%; margin: -1.2em 0 0 -0.4em; }
 
@@ -265,22 +274,22 @@ div.identitylist:hover { cursor: pointer; background: $primary-color-dark; }
 li.colorhead, li.colorhead:hover {
 	text-align: center;
 	padding: 0.6em 0;
-	background: #444;
+	background: #CCC;
 	}
 
 li.colorhead h6 { color: white; margin: 0; }
 
-#wallets:before, #wallets:after { border-bottom-color: #444; }
+#wallets:before, #wallets:after { border-bottom-color: #fff; }
 
 #wallets li:not(.colorhead) {
 	background: $primary-color;
 	&:hover { background: lighten($primary-color, 10%); }
 }
 
-#wallets li a { color: white; }
+#wallets li a { color: lightslategray; }
 
 #wallets {
-	border: 2px solid #444;
+	border: 2px solid #fff;
 	border-radius: 4px;
 	 }
 
@@ -289,18 +298,26 @@ li.colorhead h6 { color: white; margin: 0; }
 ul.off-canvas-list {
 	overflow-x: hidden;
 	white-space: nowrap;
-	li a:hover { background: $dark-transparent; }
+	li a:hover { background: $hover-color; color: $primary-color;
+ }
 	li a.cornerbutton {
 		color: $primary-color-dark;
 		padding: 0.0rem 0.3rem;
 		border-bottom: none;
 	}
+    li a {background: $light-transparent; color: $secondary-color;
+        
+    }
+    
+   
 	li a.cornerbutton.active {
 		background: $primary-color-dark;
 		color: $secondary-color;
 	}
 
-	li.active, li.active a:hover { background: $body-bg; }
+	li.active, li.active a{ background: lighten(silver, 10%); color: $secondary-color; }
+    
+    li label {background: lighten($secondary-color, 40%); color: $secondary-color; border-bottom: 1px solid $secondary-color; }
  }
 
 .fiat:not(:empty) {
@@ -314,6 +331,10 @@ ul.off-canvas-list {
 
 .tabs { border-bottom: 1px solid $topbar-link-bg-active; }
 
+.tabs dd >a {background: $light-transparent; color: $secondary-color;}
+.tabs dd >a:hover {background: $hover-color; color: $primary-color;}
+.tabs dd.active a {background: lighten(silver, 10%); color: $secondary-color; }
+
 .labels { position: absolute; top: 50%; margin-top: -11px; right: 0; z-index: 3; }
 
 .top-bar { position: absolute; width: 100%; z-index: 3; }
@@ -325,7 +346,7 @@ textarea.seed {
 	text-align: center;
 	padding: 4em 0;
 	min-height: 10em;
-	color: white;
+	color: lightslategray;
 	resize: none;
  }
 
@@ -348,6 +369,7 @@ textarea.script {
 div.notifications .panel:hover,
 .pocket-square:hover {
 	background: $primary-color;
+    color:aliceblue;
 	cursor: pointer;
 }
 
@@ -414,9 +436,9 @@ span.contact-name { font-size: 200%; vertical-align: middle; }
 
 .modal-show-qr { background: white; top: 10px; overflow: hidden; padding: 0; }
 .qr-address { word-wrap: break-word; color: black; margin-right: 3em; }
-
+.name{background: #fff; border-right: 2px solid $hover-color;}
 #logo { margin: -2px 5px 0 -5px; }
-#maintitle { margin-right: -1px; }
+#maintitle { margin-right: -1px; min-width:250px; color: $primary-color; }
 
 div.pockets { z-index: 2; }
 
@@ -424,7 +446,7 @@ div.pockets { z-index: 2; }
 
 
 
-div.inner-wrap { min-height: inherit; padding: 0;}
+div.inner-wrap { min-height: inherit; padding: 0; background:  url(../images/bg.png) center/contain no-repeat; }
 
 ul.off-canvas-list li.pocketpinned {
 	 a {
@@ -503,6 +525,7 @@ ul.off-canvas-list li.pocketpinned {
 div.tri {
 	@include css-triangle(1.44rem, $primary-color, left);
 	display: inline-block;
+    background: #eeeeee;
  }
 
 section.left:hover  { padding-right: 0.8rem; }
@@ -524,10 +547,71 @@ div.chat-text .wrapper .shoutText {
 	padding: 0 5px;
 }
 
+.panel h1, .panel h2, .panel h3, .panel h4, .panel h5, .panel h6, .panel p, .panel li, .panel dl {
+    color: $secondary-color;
+}
+.panel {
+    background: #fff;
+    border: none;
+}
+.pocket-square {
+	background: #fff;
+	a { color: $primary-color; 
+    }
+    border: 0px solid #fff;
+}
+.pocket-square:hover, .hover {
+    color: #333;
+    a { color: $secondary-color; 
+    }
+    h5 {color: $primary-color; 
+    }
+    background-color: aliceblue;
+}
+.panel:active {
+    a { color: $alternative-color; 
+    }
+    h5 {color: $secondary-color; 
+}
+    background-color: aliceblue;
+}
+.top-bar {
+    background-color: $primary-color;
+border-bottom: 4px solid red;
+}
+section.middle.tab-bar-section {
+    background: #eeeeee;
+    color: $secondary-color;
+    .title { 
+            color: $darker-transparent;
 
+    }
+}
+.top-bar-section li:not(.has-form) a:not(.button):hover{
+    color: $primary-color;
+    background: $hover-color;
+}
+.top-bar-section li:not(.has-form) a:not(.button){
+height:50px;
+    background-color: $primary-color-dark;
+border-bottom: 4px solid red;
+}
+
+.top-bar-section li.active:not(.has-form) a:not(.button){
+    color: $secondary-color;
+    background: #fff;
+}
+.top-bar-section li.active:not(.has-form) a:not(.button):hover{
+   color: $secondary-color;
+    background: #fff;
+}
+.left-off-canvas-menu {
+    
+    background: $light-transparent;
+}
 /* ----------- Backgrounds ---------------- */
-
-.setback.net { background: url(../images/net.svg) center/contain no-repeat; }
+/* -----------
+.setback.net { background:  url(../images/net.svg) center/contain no-repeat; opacity: 0.1;}
 
 .setback.fiat-background { background: url(../images/fiat.svg) center/contain no-repeat; }
 
@@ -535,6 +619,16 @@ div.chat-text .wrapper .shoutText {
 
 
 .setback.notifications { background: url(../images/notifications.svg) right/contain no-repeat; }
+-------- */
+.setback.net { background: $light-transparent;}
+
+.setback.fiat-background { background: $light-transparent; }
+
+.setback.coins { background: $light-transparent; label{color: $secondary-color;}}
+
+
+.setback.notifications { background: $light-transparent; label{color: $secondary-color;}}
+.setback.seed{background: $light-transparent; label{color: $secondary-color;}}
 
 .lobbyback {
 	background: url(../images/virtual.svg) top/cover no-repeat;

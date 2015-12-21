@@ -1,4 +1,15 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.bitcoin = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Bitcoin = {
+  base58: require('bs58'),
+  bitcoin: require('bitcoinjs-lib'),
+  ecurve: require('ecurve'),
+  BigInteger: require('bigi'),
+  Buffer: require('buffer')
+}
+
+module.exports = Bitcoin
+
+},{"bigi":4,"bitcoinjs-lib":28,"bs58":36,"buffer":56,"ecurve":41}],2:[function(require,module,exports){
 // (public) Constructor
 function BigInteger(a, b, c) {
   if (!(this instanceof BigInteger))
@@ -1511,7 +1522,7 @@ BigInteger.valueOf = nbv
 
 module.exports = BigInteger
 
-},{"../package.json":4}],2:[function(require,module,exports){
+},{"../package.json":5}],3:[function(require,module,exports){
 (function (Buffer){
 // FIXME: Kind of a weird way to throw exceptions, consider removing
 var assert = require('assert')
@@ -1606,14 +1617,14 @@ BigInteger.prototype.toHex = function(size) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./bigi":1,"assert":47,"buffer":49}],3:[function(require,module,exports){
+},{"./bigi":2,"assert":54,"buffer":56}],4:[function(require,module,exports){
 var BigInteger = require('./bigi')
 
 //addons
 require('./convert')
 
 module.exports = BigInteger
-},{"./bigi":1,"./convert":2}],4:[function(require,module,exports){
+},{"./bigi":2,"./convert":3}],5:[function(require,module,exports){
 module.exports={
   "name": "bigi",
   "version": "1.4.1",
@@ -1709,7 +1720,7 @@ module.exports={
   "readme": "ERROR: No README data found!"
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 (function (Buffer){
 // Reference https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
 // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
@@ -1824,7 +1835,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":49}],6:[function(require,module,exports){
+},{"buffer":56}],7:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 
@@ -1870,94 +1881,51 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bs58":7,"buffer":49,"create-hash":8}],7:[function(require,module,exports){
-// Base58 encoding/decoding
-// Originally written by Mike Hearn for BitcoinJ
-// Copyright (c) 2011 Google Inc
-// Ported to JavaScript by Stefan Thomas
-// Merged Buffer refactorings from base58-native by Stephen Pair
-// Copyright (c) 2013 BitPay Inc
+},{"bs58":36,"buffer":56,"create-hash":10}],8:[function(require,module,exports){
+(function (Buffer){
+'use strict';
+module.exports = function (a, b) {
+	if (!Buffer.isBuffer(a) || !Buffer.isBuffer(b)) {
+		throw new TypeError('Arguments must be Buffers');
+	}
 
-var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-var ALPHABET_MAP = {}
-for(var i = 0; i < ALPHABET.length; i++) {
-  ALPHABET_MAP[ALPHABET.charAt(i)] = i
-}
-var BASE = 58
+	if (a === b) {
+		return true;
+	}
 
-function encode(buffer) {
-  if (buffer.length === 0) return ''
+	if (typeof a.equals === 'function') {
+		return a.equals(b);
+	}
 
-  var i, j, digits = [0]
-  for (i = 0; i < buffer.length; i++) {
-    for (j = 0; j < digits.length; j++) digits[j] <<= 8
+	if (a.length !== b.length) {
+		return false;
+	}
 
-    digits[0] += buffer[i]
+	for (var i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) {
+			return false;
+		}
+	}
 
-    var carry = 0
-    for (j = 0; j < digits.length; ++j) {
-      digits[j] += carry
+	return true;
+};
 
-      carry = (digits[j] / BASE) | 0
-      digits[j] %= BASE
-    }
+}).call(this,{"isBuffer":require("../../../../../../../../usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
+},{"../../../../../../../../usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":62}],9:[function(require,module,exports){
+(function (Buffer){
+module.exports = function reverse (a) {
+  var length = a.length
+  var buffer = new Buffer(length)
 
-    while (carry) {
-      digits.push(carry % BASE)
-
-      carry = (carry / BASE) | 0
-    }
+  for (var i = 0, j = length - 1; i < length; ++i, --j) {
+    buffer[i] = a[j]
   }
 
-  // deal with leading zeros
-  for (i = 0; buffer[i] === 0 && i < buffer.length - 1; i++) digits.push(0)
-
-  // convert digits to a string
-  var stringOutput = ""
-  for (var i = digits.length - 1; i >= 0; i--) {
-    stringOutput = stringOutput + ALPHABET[digits[i]]
-  }
-  return stringOutput
+  return buffer
 }
 
-function decode(string) {
-  if (string.length === 0) return []
-
-  var i, j, bytes = [0]
-  for (i = 0; i < string.length; i++) {
-    var c = string[i]
-    if (!(c in ALPHABET_MAP)) throw new Error('Non-base58 character')
-
-    for (j = 0; j < bytes.length; j++) bytes[j] *= BASE
-    bytes[0] += ALPHABET_MAP[c]
-
-    var carry = 0
-    for (j = 0; j < bytes.length; ++j) {
-      bytes[j] += carry
-
-      carry = bytes[j] >> 8
-      bytes[j] &= 0xff
-    }
-
-    while (carry) {
-      bytes.push(carry & 0xff)
-
-      carry >>= 8
-    }
-  }
-
-  // deal with leading zeros
-  for (i = 0; string[i] === '1' && i < string.length - 1; i++) bytes.push(0)
-
-  return bytes.reverse()
-}
-
-module.exports = {
-  encode: encode,
-  decode: decode
-}
-
-},{}],8:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+},{"buffer":56}],10:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var inherits = require('inherits')
@@ -2013,7 +1981,7 @@ module.exports = function createHash (alg) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./md5":10,"buffer":49,"cipher-base":11,"inherits":12,"ripemd160":13,"sha.js":15}],9:[function(require,module,exports){
+},{"./md5":12,"buffer":56,"cipher-base":37,"inherits":13,"ripemd160":44,"sha.js":46}],11:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var intSize = 4;
@@ -2050,7 +2018,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 }
 exports.hash = hash;
 }).call(this,require("buffer").Buffer)
-},{"buffer":49}],10:[function(require,module,exports){
+},{"buffer":56}],12:[function(require,module,exports){
 'use strict';
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -2207,7 +2175,3250 @@ function bit_rol(num, cnt)
 module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
-},{"./helpers":9}],11:[function(require,module,exports){
+},{"./helpers":11}],13:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],14:[function(require,module,exports){
+(function (Buffer){
+'use strict';
+var createHash = require('create-hash/browser');
+var inherits = require('inherits')
+
+var Transform = require('stream').Transform
+
+var ZEROS = new Buffer(128)
+ZEROS.fill(0)
+
+function Hmac(alg, key) {
+  Transform.call(this)
+  alg = alg.toLowerCase()
+  if (typeof key === 'string') {
+    key = new Buffer(key)
+  }
+
+  var blocksize = (alg === 'sha512' || alg === 'sha384') ? 128 : 64
+
+  this._alg = alg
+  this._key = key
+
+  if (key.length > blocksize) {
+    key = createHash(alg).update(key).digest()
+
+  } else if (key.length < blocksize) {
+    key = Buffer.concat([key, ZEROS], blocksize)
+  }
+
+  var ipad = this._ipad = new Buffer(blocksize)
+  var opad = this._opad = new Buffer(blocksize)
+
+  for (var i = 0; i < blocksize; i++) {
+    ipad[i] = key[i] ^ 0x36
+    opad[i] = key[i] ^ 0x5C
+  }
+
+  this._hash = createHash(alg).update(ipad)
+}
+
+inherits(Hmac, Transform)
+
+Hmac.prototype.update = function (data, enc) {
+  this._hash.update(data, enc)
+
+  return this
+}
+
+Hmac.prototype._transform = function (data, _, next) {
+  this._hash.update(data)
+
+  next()
+}
+
+Hmac.prototype._flush = function (next) {
+  this.push(this.digest())
+
+  next()
+}
+
+Hmac.prototype.digest = function (enc) {
+  var h = this._hash.digest()
+
+  return createHash(this._alg).update(this._opad).update(h).digest(enc)
+}
+
+module.exports = function createHmac(alg, key) {
+  return new Hmac(alg, key)
+}
+
+}).call(this,require("buffer").Buffer)
+},{"buffer":56,"create-hash/browser":10,"inherits":15,"stream":78}],15:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],16:[function(require,module,exports){
+(function (process,global,Buffer){
+'use strict';
+
+var crypto = global.crypto || global.msCrypto
+if(crypto && crypto.getRandomValues) {
+  module.exports = randomBytes;
+} else {
+  module.exports = oldBrowser;
+}
+function randomBytes(size, cb) {
+  var bytes = new Buffer(size); //in browserify, this is an extended Uint8Array
+    /* This will not work in older browsers.
+     * See https://developer.mozilla.org/en-US/docs/Web/API/window.crypto.getRandomValues
+     */
+
+  crypto.getRandomValues(bytes);
+  if (typeof cb === 'function') {
+    return process.nextTick(function () {
+      cb(null, bytes);
+    });
+  }
+  return bytes;
+}
+function oldBrowser() {
+  throw new Error(
+      'secure random number generation not supported by this browser\n'+
+      'use chrome, FireFox or Internet Explorer 11'
+    )
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
+},{"_process":64,"buffer":56}],17:[function(require,module,exports){
+(function (Buffer){
+var inherits = require('inherits')
+
+function TfTypeError (type, value) {
+  this.tfError = Error.call(this)
+  this.tfType = type
+  this.tfValue = value
+
+  var message
+  Object.defineProperty(this, 'message', {
+    get: function () {
+      if (message) return message
+      message = tfErrorString(type, value)
+
+      return message
+    }
+  })
+}
+
+inherits(TfTypeError, Error)
+Object.defineProperty(TfTypeError, 'stack', { get: function () { return this.tfError.stack } })
+
+function TfPropertyTypeError (type, property, value, error) {
+  this.tfError = error || Error.call(this)
+  this.tfProperty = property
+  this.tfType = type
+  this.tfValue = value
+
+  var message
+  Object.defineProperty(this, 'message', {
+    get: function () {
+      if (message) return message
+      if (type) {
+        message = tfPropertyErrorString(type, property, value)
+      } else {
+        message = 'Unexpected property "' + property + '"'
+      }
+
+      return message
+    }
+  })
+}
+
+inherits(TfPropertyTypeError, Error)
+Object.defineProperty(TfPropertyTypeError, 'stack', { get: function () { return this.tfError.stack } })
+
+TfPropertyTypeError.prototype.asChildOf = function (property) {
+  return new TfPropertyTypeError(this.tfType, property + '.' + this.tfProperty, this.tfValue, this.tfError)
+}
+
+function getFunctionName (fn) {
+  return fn.name || fn.toString().match(/function (.*?)\s*\(/)[1]
+}
+
+function getValueTypeName (value) {
+  if (nativeTypes.Null(value)) return ''
+
+  return getFunctionName(value.constructor)
+}
+
+function getValue (value) {
+  if (nativeTypes.Function(value)) return ''
+  if (nativeTypes.String(value)) return JSON.stringify(value)
+  if (value && nativeTypes.Object(value)) return ''
+
+  return value
+}
+
+function tfJSON (type) {
+  if (nativeTypes.Function(type)) return type.toJSON ? type.toJSON() : getFunctionName(type)
+  if (nativeTypes.Array(type)) return 'Array'
+  if (type && nativeTypes.Object(type)) return 'Object'
+
+  return type || ''
+}
+
+function stfJSON (type) {
+  type = tfJSON(type)
+
+  return nativeTypes.Object(type) ? JSON.stringify(type) : type
+}
+
+function tfErrorString (type, value) {
+  var valueTypeName = getValueTypeName(value)
+  var valueValue = getValue(value)
+
+  return 'Expected ' + stfJSON(type) + ', got' + (valueTypeName !== '' ? ' ' + valueTypeName : '') + (valueValue !== '' ? ' ' + valueValue : '')
+}
+
+function tfPropertyErrorString (type, name, value) {
+  return tfErrorString('property \"' + stfJSON(name) + '\" of type ' + stfJSON(type), value)
+}
+
+var nativeTypes = {
+  Array: function (value) { return value !== null && value !== undefined && value.constructor === Array },
+  Boolean: function (value) { return typeof value === 'boolean' },
+  Buffer: function (value) { return Buffer.isBuffer(value) },
+  Function: function (value) { return typeof value === 'function' },
+  Null: function (value) { return value === undefined || value === null },
+  Number: function (value) { return typeof value === 'number' },
+  Object: function (value) { return typeof value === 'object' },
+  String: function (value) { return typeof value === 'string' },
+  '': function () { return true }
+}
+
+var otherTypes = {
+  arrayOf: function arrayOf (type) {
+    function arrayOf (value, strict) {
+      if (!nativeTypes.Array(value)) return false
+
+      return value.every(function (x) {
+        return typeforce(type, x, strict, arrayOf)
+      })
+    }
+    arrayOf.toJSON = function () { return [tfJSON(type)] }
+
+    return arrayOf
+  },
+
+  maybe: function maybe (type) {
+    function maybe (value, strict) {
+      return nativeTypes.Null(value) || typeforce(type, value, strict, maybe)
+    }
+    maybe.toJSON = function () { return '?' + stfJSON(type) }
+
+    return maybe
+  },
+
+  object: function object (type) {
+    function object (value, strict) {
+      if (!nativeTypes.Object(value)) return false
+      if (nativeTypes.Null(value)) return false
+
+      var propertyName
+
+      try {
+        for (propertyName in type) {
+          var propertyType = type[propertyName]
+          var propertyValue = value[propertyName]
+
+          typeforce(propertyType, propertyValue, strict)
+        }
+      } catch (e) {
+        if (e instanceof TfPropertyTypeError) {
+          throw e.asChildOf(propertyName)
+        } else if (e instanceof TfTypeError) {
+          throw new TfPropertyTypeError(e.tfType, propertyName, e.tfValue, e.tfError)
+        }
+
+        throw e
+      }
+
+      if (strict) {
+        for (propertyName in value) {
+          if (type[propertyName]) continue
+
+          throw new TfPropertyTypeError(undefined, propertyName)
+        }
+      }
+
+      return true
+    }
+    object.toJSON = function () { return tfJSON(type) }
+
+    return object
+  },
+
+  map: function map (propertyType, propertyKeyType) {
+    function map (value, strict) {
+      typeforce(nativeTypes.Object, value, strict)
+      if (nativeTypes.Null(value)) return false
+
+      var propertyName
+
+      try {
+        for (propertyName in value) {
+          if (propertyKeyType) {
+            typeforce(propertyKeyType, propertyName, strict)
+          }
+
+          var propertyValue = value[propertyName]
+          typeforce(propertyType, propertyValue, strict)
+        }
+      } catch (e) {
+        if (e instanceof TfPropertyTypeError) {
+          throw e.asChildOf(propertyName)
+        } else if (e instanceof TfTypeError) {
+          throw new TfPropertyTypeError(e.tfType, propertyKeyType || propertyName, e.tfValue)
+        }
+
+        throw e
+      }
+
+      return true
+    }
+
+    if (propertyKeyType) {
+      map.toJSON = function () { return '{' + stfJSON(propertyKeyType) + ': ' + stfJSON(propertyType) + '}' }
+    } else {
+      map.toJSON = function () { return '{' + stfJSON(propertyType) + '}' }
+    }
+
+    return map
+  },
+
+  oneOf: function oneOf () {
+    var types = [].slice.call(arguments)
+
+    function oneOf (value, strict) {
+      return types.some(function (type) {
+        try {
+          return typeforce(type, value, strict)
+        } catch (e) {
+          if (e instanceof TfTypeError || e instanceof TfPropertyTypeError) return false
+
+          throw e
+        }
+      })
+    }
+    oneOf.toJSON = function () { return types.map(stfJSON).join('|') }
+
+    return oneOf
+  },
+
+  quacksLike: function quacksLike (type) {
+    function quacksLike (value, strict) {
+      return type === getValueTypeName(value)
+    }
+    quacksLike.toJSON = function () { return type }
+
+    return quacksLike
+  },
+
+  tuple: function tuple () {
+    var types = [].slice.call(arguments)
+
+    function tuple (value, strict) {
+      return types.every(function (type, i) {
+        return typeforce(type, value[i], strict)
+      })
+    }
+    tuple.toJSON = function () { return '(' + types.map(stfJSON).join(', ') + ')' }
+
+    return tuple
+  },
+
+  value: function value (expected) {
+    function value (actual) {
+      return actual === expected
+    }
+    value.toJSON = function () { return expected }
+
+    return value
+  }
+}
+
+function compile (type) {
+  if (nativeTypes.String(type)) {
+    if (type[0] === '?') return otherTypes.maybe(compile(type.slice(1)))
+
+    return nativeTypes[type] || otherTypes.quacksLike(type)
+  } else if (type && nativeTypes.Object(type)) {
+    if (nativeTypes.Array(type)) return otherTypes.arrayOf(compile(type[0]))
+
+    var compiled = {}
+
+    for (var propertyName in type) {
+      compiled[propertyName] = compile(type[propertyName])
+    }
+
+    return otherTypes.object(compiled)
+  } else if (nativeTypes.Function(type)) {
+    return type
+  }
+
+  return otherTypes.value(type)
+}
+
+function typeforce (type, value, strict, surrogate) {
+  if (nativeTypes.Function(type)) {
+    if (type(value, strict)) return true
+
+    throw new TfTypeError(surrogate || type, value)
+  }
+
+  // JIT
+  return typeforce(compile(type), value, strict)
+}
+
+// assign all types to typeforce function
+var typeName
+Object.keys(nativeTypes).forEach(function (typeName) {
+  var nativeType = nativeTypes[typeName]
+  nativeType.toJSON = function () { return typeName }
+
+  typeforce[typeName] = nativeType
+})
+
+for (typeName in otherTypes) {
+  typeforce[typeName] = otherTypes[typeName]
+}
+
+module.exports = typeforce
+module.exports.compile = compile
+
+// export Error objects
+module.exports.TfTypeError = TfTypeError
+module.exports.TfPropertyTypeError = TfPropertyTypeError
+
+}).call(this,{"isBuffer":require("../../../../../../../../usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
+},{"../../../../../../../../usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":62,"inherits":18}],18:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],19:[function(require,module,exports){
+(function (Buffer){
+var bs58check = require('bs58check')
+
+function decodeRaw (version, buffer) {
+  if (buffer[0] !== version) throw new Error('Invalid network version')
+
+  // compression flag?
+  if (buffer.length === 34) {
+    if (buffer[33] !== 0x01) throw new Error('Invalid compression flag')
+
+    // truncate the version byte/compression flag
+    return {
+      version: buffer[0],
+      d: buffer.slice(1, -1),
+      compressed: true
+    }
+  }
+
+  // no compression flag
+  if (buffer.length !== 33) throw new Error('Invalid WIF length')
+
+  return {
+    version: buffer[0],
+    d: buffer.slice(1),
+    compressed: false
+  }
+}
+
+function decode (version, string) {
+  return decodeRaw(version, bs58check.decode(string))
+}
+
+function encodeRaw (version, d, compressed) {
+  var buffer = new Buffer(compressed ? 34 : 33)
+
+  buffer.writeUInt8(version, 0)
+  d.copy(buffer, 1)
+
+  if (compressed) {
+    buffer[33] = 0x01
+  }
+
+  return buffer
+}
+
+function encode (version, d, compressed) {
+  return bs58check.encode(encodeRaw(version, d, compressed))
+}
+
+module.exports = {
+  decode: decode,
+  decodeRaw: decodeRaw,
+  encode: encode,
+  encodeRaw: encodeRaw
+}
+
+}).call(this,require("buffer").Buffer)
+},{"bs58check":7,"buffer":56}],20:[function(require,module,exports){
+(function (Buffer){
+var bs58check = require('bs58check')
+var bscript = require('./script')
+var networks = require('./networks')
+var typeforce = require('typeforce')
+var types = require('./types')
+
+function fromBase58Check (address) {
+  var payload = bs58check.decode(address)
+  if (payload.length < 21) throw new TypeError(address + ' is too short')
+  if (payload.length > 21) throw new TypeError(address + ' is too long')
+
+  var version = payload[0]
+  var hash = payload.slice(1)
+
+  return { hash: hash, version: version }
+}
+
+function fromOutputScript (scriptPubKey, network) {
+  network = network || networks.bitcoin
+
+  if (bscript.isPubKeyHashOutput(scriptPubKey)) return toBase58Check(scriptPubKey.slice(3, 23), network.pubKeyHash)
+  if (bscript.isScriptHashOutput(scriptPubKey)) return toBase58Check(scriptPubKey.slice(2, 22), network.scriptHash)
+
+  throw new Error(bscript.toASM(scriptPubKey) + ' has no matching Address')
+}
+
+function toBase58Check (hash, version) {
+  typeforce(types.tuple(types.Hash160bit, types.UInt8), arguments)
+
+  var payload = new Buffer(21)
+  payload.writeUInt8(version, 0)
+  hash.copy(payload, 1)
+
+  return bs58check.encode(payload)
+}
+
+function toOutputScript (address, network) {
+  network = network || networks.bitcoin
+
+  var decode = fromBase58Check(address)
+  if (decode.version === network.pubKeyHash) return bscript.pubKeyHashOutput(decode.hash)
+  if (decode.version === network.scriptHash) return bscript.scriptHashOutput(decode.hash)
+
+  throw new Error(address + ' has no matching Script')
+}
+
+module.exports = {
+  fromBase58Check: fromBase58Check,
+  fromOutputScript: fromOutputScript,
+  toBase58Check: toBase58Check,
+  toOutputScript: toOutputScript
+}
+
+}).call(this,require("buffer").Buffer)
+},{"./networks":30,"./script":32,"./types":35,"bs58check":7,"buffer":56,"typeforce":17}],21:[function(require,module,exports){
+(function (Buffer){
+var bufferutils = require('./bufferutils')
+var bcrypto = require('./crypto')
+
+var Transaction = require('./transaction')
+
+function Block () {
+  this.version = 1
+  this.prevHash = null
+  this.merkleRoot = null
+  this.timestamp = 0
+  this.bits = 0
+  this.nonce = 0
+}
+
+Block.fromBuffer = function (buffer) {
+  if (buffer.length < 80) throw new Error('Buffer too small (< 80 bytes)')
+
+  var offset = 0
+  function readSlice (n) {
+    offset += n
+    return buffer.slice(offset - n, offset)
+  }
+
+  function readUInt32 () {
+    var i = buffer.readUInt32LE(offset)
+    offset += 4
+    return i
+  }
+
+  var block = new Block()
+  block.version = readUInt32()
+  block.prevHash = readSlice(32)
+  block.merkleRoot = readSlice(32)
+  block.timestamp = readUInt32()
+  block.bits = readUInt32()
+  block.nonce = readUInt32()
+
+  if (buffer.length === 80) return block
+
+  function readVarInt () {
+    var vi = bufferutils.readVarInt(buffer, offset)
+    offset += vi.size
+    return vi.number
+  }
+
+  function readTransaction () {
+    var tx = Transaction.fromBuffer(buffer.slice(offset), true)
+
+    offset += tx.byteLength()
+    return tx
+  }
+
+  var nTransactions = readVarInt()
+  block.transactions = []
+
+  for (var i = 0; i < nTransactions; ++i) {
+    var tx = readTransaction()
+    block.transactions.push(tx)
+  }
+
+  return block
+}
+
+Block.fromHex = function (hex) {
+  return Block.fromBuffer(new Buffer(hex, 'hex'))
+}
+
+Block.prototype.getHash = function () {
+  return bcrypto.hash256(this.toBuffer(true))
+}
+
+Block.prototype.getId = function () {
+  return [].reverse.call(this.getHash()).toString('hex')
+}
+
+Block.prototype.getUTCDate = function () {
+  var date = new Date(0) // epoch
+  date.setUTCSeconds(this.timestamp)
+
+  return date
+}
+
+Block.prototype.toBuffer = function (headersOnly) {
+  var buffer = new Buffer(80)
+
+  var offset = 0
+  function writeSlice (slice) {
+    slice.copy(buffer, offset)
+    offset += slice.length
+  }
+
+  function writeUInt32 (i) {
+    buffer.writeUInt32LE(i, offset)
+    offset += 4
+  }
+
+  writeUInt32(this.version)
+  writeSlice(this.prevHash)
+  writeSlice(this.merkleRoot)
+  writeUInt32(this.timestamp)
+  writeUInt32(this.bits)
+  writeUInt32(this.nonce)
+
+  if (headersOnly || !this.transactions) return buffer
+
+  var txLenBuffer = bufferutils.varIntBuffer(this.transactions.length)
+  var txBuffers = this.transactions.map(function (tx) {
+    return tx.toBuffer()
+  })
+
+  return Buffer.concat([buffer, txLenBuffer].concat(txBuffers))
+}
+
+Block.prototype.toHex = function (headersOnly) {
+  return this.toBuffer(headersOnly).toString('hex')
+}
+
+module.exports = Block
+
+}).call(this,require("buffer").Buffer)
+},{"./bufferutils":22,"./crypto":23,"./transaction":33,"buffer":56}],22:[function(require,module,exports){
+(function (Buffer){
+var opcodes = require('./opcodes')
+
+// https://github.com/feross/buffer/blob/master/index.js#L1127
+function verifuint (value, max) {
+  if (typeof value !== 'number') throw new Error('cannot write a non-number as a number')
+  if (value < 0) throw new Error('specified a negative value for writing an unsigned value')
+  if (value > max) throw new Error('value is larger than maximum value for type')
+  if (Math.floor(value) !== value) throw new Error('value has a fractional component')
+}
+
+function pushDataSize (i) {
+  return i < opcodes.OP_PUSHDATA1 ? 1
+  : i < 0xff ? 2
+  : i < 0xffff ? 3
+  : 5
+}
+
+function readPushDataInt (buffer, offset) {
+  var opcode = buffer.readUInt8(offset)
+  var number, size
+
+  // ~6 bit
+  if (opcode < opcodes.OP_PUSHDATA1) {
+    number = opcode
+    size = 1
+
+  // 8 bit
+  } else if (opcode === opcodes.OP_PUSHDATA1) {
+    if (offset + 2 > buffer.length) return null
+    number = buffer.readUInt8(offset + 1)
+    size = 2
+
+  // 16 bit
+  } else if (opcode === opcodes.OP_PUSHDATA2) {
+    if (offset + 3 > buffer.length) return null
+    number = buffer.readUInt16LE(offset + 1)
+    size = 3
+
+  // 32 bit
+  } else {
+    if (offset + 5 > buffer.length) return null
+    if (opcode !== opcodes.OP_PUSHDATA4) throw new Error('Unexpected opcode')
+
+    number = buffer.readUInt32LE(offset + 1)
+    size = 5
+  }
+
+  return {
+    opcode: opcode,
+    number: number,
+    size: size
+  }
+}
+
+function readUInt64LE (buffer, offset) {
+  var a = buffer.readUInt32LE(offset)
+  var b = buffer.readUInt32LE(offset + 4)
+  b *= 0x100000000
+
+  verifuint(b + a, 0x001fffffffffffff)
+
+  return b + a
+}
+
+function readVarInt (buffer, offset) {
+  var t = buffer.readUInt8(offset)
+  var number, size
+
+  // 8 bit
+  if (t < 253) {
+    number = t
+    size = 1
+
+  // 16 bit
+  } else if (t < 254) {
+    number = buffer.readUInt16LE(offset + 1)
+    size = 3
+
+  // 32 bit
+  } else if (t < 255) {
+    number = buffer.readUInt32LE(offset + 1)
+    size = 5
+
+  // 64 bit
+  } else {
+    number = readUInt64LE(buffer, offset + 1)
+    size = 9
+  }
+
+  return {
+    number: number,
+    size: size
+  }
+}
+
+function writePushDataInt (buffer, number, offset) {
+  var size = pushDataSize(number)
+
+  // ~6 bit
+  if (size === 1) {
+    buffer.writeUInt8(number, offset)
+
+  // 8 bit
+  } else if (size === 2) {
+    buffer.writeUInt8(opcodes.OP_PUSHDATA1, offset)
+    buffer.writeUInt8(number, offset + 1)
+
+  // 16 bit
+  } else if (size === 3) {
+    buffer.writeUInt8(opcodes.OP_PUSHDATA2, offset)
+    buffer.writeUInt16LE(number, offset + 1)
+
+  // 32 bit
+  } else {
+    buffer.writeUInt8(opcodes.OP_PUSHDATA4, offset)
+    buffer.writeUInt32LE(number, offset + 1)
+  }
+
+  return size
+}
+
+function writeUInt64LE (buffer, value, offset) {
+  verifuint(value, 0x001fffffffffffff)
+
+  buffer.writeInt32LE(value & -1, offset)
+  buffer.writeUInt32LE(Math.floor(value / 0x100000000), offset + 4)
+}
+
+function varIntSize (i) {
+  return i < 253 ? 1
+  : i < 0x10000 ? 3
+  : i < 0x100000000 ? 5
+  : 9
+}
+
+function writeVarInt (buffer, number, offset) {
+  var size = varIntSize(number)
+
+  // 8 bit
+  if (size === 1) {
+    buffer.writeUInt8(number, offset)
+
+  // 16 bit
+  } else if (size === 3) {
+    buffer.writeUInt8(253, offset)
+    buffer.writeUInt16LE(number, offset + 1)
+
+  // 32 bit
+  } else if (size === 5) {
+    buffer.writeUInt8(254, offset)
+    buffer.writeUInt32LE(number, offset + 1)
+
+  // 64 bit
+  } else {
+    buffer.writeUInt8(255, offset)
+    writeUInt64LE(buffer, number, offset + 1)
+  }
+
+  return size
+}
+
+function varIntBuffer (i) {
+  var size = varIntSize(i)
+  var buffer = new Buffer(size)
+  writeVarInt(buffer, i, 0)
+
+  return buffer
+}
+
+module.exports = {
+  equal: require('buffer-equals'),
+  pushDataSize: pushDataSize,
+  readPushDataInt: readPushDataInt,
+  readUInt64LE: readUInt64LE,
+  readVarInt: readVarInt,
+  reverse: require('buffer-reverse'),
+  varIntBuffer: varIntBuffer,
+  varIntSize: varIntSize,
+  writePushDataInt: writePushDataInt,
+  writeUInt64LE: writeUInt64LE,
+  writeVarInt: writeVarInt
+}
+
+}).call(this,require("buffer").Buffer)
+},{"./opcodes":31,"buffer":56,"buffer-equals":8,"buffer-reverse":9}],23:[function(require,module,exports){
+var createHash = require('create-hash')
+
+function hash160 (buffer) {
+  return ripemd160(sha256(buffer))
+}
+
+function hash256 (buffer) {
+  return sha256(sha256(buffer))
+}
+
+function ripemd160 (buffer) {
+  return createHash('rmd160').update(buffer).digest()
+}
+
+function sha1 (buffer) {
+  return createHash('sha1').update(buffer).digest()
+}
+
+function sha256 (buffer) {
+  return createHash('sha256').update(buffer).digest()
+}
+
+module.exports = {
+  hash160: hash160,
+  hash256: hash256,
+  ripemd160: ripemd160,
+  sha1: sha1,
+  sha256: sha256
+}
+
+},{"create-hash":10}],24:[function(require,module,exports){
+(function (Buffer){
+var createHmac = require('create-hmac')
+var typeforce = require('typeforce')
+var types = require('./types')
+
+var BigInteger = require('bigi')
+var ECSignature = require('./ecsignature')
+
+var ZERO = new Buffer([0])
+var ONE = new Buffer([1])
+
+var ecurve = require('ecurve')
+var secp256k1 = ecurve.getCurveByName('secp256k1')
+
+// https://tools.ietf.org/html/rfc6979#section-3.2
+function deterministicGenerateK (hash, x, checkSig) {
+  typeforce(types.tuple(
+    types.Hash256bit,
+    types.Buffer256bit,
+    types.Function
+  ), arguments)
+
+  var k = new Buffer(32)
+  var v = new Buffer(32)
+
+  // Step A, ignored as hash already provided
+  // Step B
+  v.fill(1)
+
+  // Step C
+  k.fill(0)
+
+  // Step D
+  k = createHmac('sha256', k)
+    .update(v)
+    .update(ZERO)
+    .update(x)
+    .update(hash)
+    .digest()
+
+  // Step E
+  v = createHmac('sha256', k).update(v).digest()
+
+  // Step F
+  k = createHmac('sha256', k)
+    .update(v)
+    .update(ONE)
+    .update(x)
+    .update(hash)
+    .digest()
+
+  // Step G
+  v = createHmac('sha256', k).update(v).digest()
+
+  // Step H1/H2a, ignored as tlen === qlen (256 bit)
+  // Step H2b
+  v = createHmac('sha256', k).update(v).digest()
+
+  var T = BigInteger.fromBuffer(v)
+
+  // Step H3, repeat until T is within the interval [1, n - 1] and is suitable for ECDSA
+  while (T.signum() <= 0 || T.compareTo(secp256k1.n) >= 0 || !checkSig(T)) {
+    k = createHmac('sha256', k)
+      .update(v)
+      .update(ZERO)
+      .digest()
+
+    v = createHmac('sha256', k).update(v).digest()
+
+    // Step H1/H2a, again, ignored as tlen === qlen (256 bit)
+    // Step H2b again
+    v = createHmac('sha256', k).update(v).digest()
+    T = BigInteger.fromBuffer(v)
+  }
+
+  return T
+}
+
+var N_OVER_TWO = secp256k1.n.shiftRight(1)
+
+function sign (hash, d) {
+  typeforce(types.tuple(types.Hash256bit, types.BigInt), arguments)
+
+  var x = d.toBuffer(32)
+  var e = BigInteger.fromBuffer(hash)
+  var n = secp256k1.n
+  var G = secp256k1.G
+
+  var r, s
+  deterministicGenerateK(hash, x, function (k) {
+    var Q = G.multiply(k)
+
+    if (secp256k1.isInfinity(Q)) return false
+
+    r = Q.affineX.mod(n)
+    if (r.signum() === 0) return false
+
+    s = k.modInverse(n).multiply(e.add(d.multiply(r))).mod(n)
+    if (s.signum() === 0) return false
+
+    return true
+  })
+
+  // enforce low S values, see bip62: 'low s values in signatures'
+  if (s.compareTo(N_OVER_TWO) > 0) {
+    s = n.subtract(s)
+  }
+
+  return new ECSignature(r, s)
+}
+
+function verify (hash, signature, Q) {
+  typeforce(types.tuple(
+    types.Hash256bit,
+    types.ECSignature,
+    types.ECPoint
+  ), arguments)
+
+  var n = secp256k1.n
+  var G = secp256k1.G
+
+  var r = signature.r
+  var s = signature.s
+
+  // 1.4.1 Enforce r and s are both integers in the interval [1, n − 1]
+  if (r.signum() <= 0 || r.compareTo(n) >= 0) return false
+  if (s.signum() <= 0 || s.compareTo(n) >= 0) return false
+
+  // 1.4.2 H = Hash(M), already done by the user
+  // 1.4.3 e = H
+  var e = BigInteger.fromBuffer(hash)
+
+  // Compute s^-1
+  var sInv = s.modInverse(n)
+
+  // 1.4.4 Compute u1 = es^−1 mod n
+  //               u2 = rs^−1 mod n
+  var u1 = e.multiply(sInv).mod(n)
+  var u2 = r.multiply(sInv).mod(n)
+
+  // 1.4.5 Compute R = (xR, yR)
+  //               R = u1G + u2Q
+  var R = G.multiplyTwo(u1, Q, u2)
+
+  // 1.4.5 (cont.) Enforce R is not at infinity
+  if (secp256k1.isInfinity(R)) return false
+
+  // 1.4.6 Convert the field element R.x to an integer
+  var xR = R.affineX
+
+  // 1.4.7 Set v = xR mod n
+  var v = xR.mod(n)
+
+  // 1.4.8 If v = r, output "valid", and if v != r, output "invalid"
+  return v.equals(r)
+}
+
+/**
+  * Recover a public key from a signature.
+  *
+  * See SEC 1: Elliptic Curve Cryptography, section 4.1.6, "Public
+  * Key Recovery Operation".
+  *
+  * http://www.secg.org/download/aid-780/sec1-v2.pdf
+  */
+function recoverPubKey (e, signature, i) {
+  typeforce(types.tuple(
+    types.BigInt,
+    types.ECSignature,
+    types.UInt2
+  ), arguments)
+
+  var n = secp256k1.n
+  var G = secp256k1.G
+  var r = signature.r
+  var s = signature.s
+
+  if (r.signum() <= 0 || r.compareTo(n) >= 0) throw new Error('Invalid r value')
+  if (s.signum() <= 0 || s.compareTo(n) >= 0) throw new Error('Invalid s value')
+
+  // A set LSB signifies that the y-coordinate is odd
+  var isYOdd = i & 1
+
+  // The more significant bit specifies whether we should use the
+  // first or second candidate key.
+  var isSecondKey = i >> 1
+
+  // 1.1 Let x = r + jn
+  var x = isSecondKey ? r.add(n) : r
+  var R = secp256k1.pointFromX(isYOdd, x)
+
+  // 1.4 Check that nR is at infinity
+  var nR = R.multiply(n)
+  if (!secp256k1.isInfinity(nR)) throw new Error('nR is not a valid curve point')
+
+  // Compute r^-1
+  var rInv = r.modInverse(n)
+
+  // Compute -e from e
+  var eNeg = e.negate().mod(n)
+
+  // 1.6.1 Compute Q = r^-1 (sR -  eG)
+  //               Q = r^-1 (sR + -eG)
+  var Q = R.multiplyTwo(s, G, eNeg).multiply(rInv)
+
+  secp256k1.validate(Q)
+
+  return Q
+}
+
+/**
+  * Calculate pubkey extraction parameter.
+  *
+  * When extracting a pubkey from a signature, we have to
+  * distinguish four different cases. Rather than putting this
+  * burden on the verifier, Bitcoin includes a 2-bit value with the
+  * signature.
+  *
+  * This function simply tries all four cases and returns the value
+  * that resulted in a successful pubkey recovery.
+  */
+function calcPubKeyRecoveryParam (e, signature, Q) {
+  typeforce(types.tuple(
+    types.BigInt,
+    types.ECSignature,
+    types.ECPoint
+  ), arguments)
+
+  for (var i = 0; i < 4; i++) {
+    var Qprime = recoverPubKey(e, signature, i)
+
+    // 1.6.2 Verify Q
+    if (Qprime.equals(Q)) {
+      return i
+    }
+  }
+
+  throw new Error('Unable to find valid recovery factor')
+}
+
+module.exports = {
+  calcPubKeyRecoveryParam: calcPubKeyRecoveryParam,
+  deterministicGenerateK: deterministicGenerateK,
+  recoverPubKey: recoverPubKey,
+  sign: sign,
+  verify: verify,
+
+  // TODO: remove
+  __curve: secp256k1
+}
+
+}).call(this,require("buffer").Buffer)
+},{"./ecsignature":26,"./types":35,"bigi":4,"buffer":56,"create-hmac":14,"ecurve":41,"typeforce":17}],25:[function(require,module,exports){
+(function (Buffer){
+var bcrypto = require('./crypto')
+var bs58check = require('bs58check')
+var ecdsa = require('./ecdsa')
+var randomBytes = require('randombytes')
+var typeforce = require('typeforce')
+var types = require('./types')
+var wif = require('wif')
+
+var NETWORKS = require('./networks')
+var BigInteger = require('bigi')
+
+var ecurve = require('ecurve')
+var secp256k1 = ecdsa.__curve
+
+function ECPair (d, Q, options) {
+  if (options) {
+    typeforce({
+      compressed: types.maybe(types.Boolean),
+      network: types.maybe(types.Network)
+    }, options)
+  }
+
+  options = options || {}
+
+  if (d) {
+    if (d.signum() <= 0) throw new Error('Private key must be greater than 0')
+    if (d.compareTo(secp256k1.n) >= 0) throw new Error('Private key must be less than the curve order')
+    if (Q) throw new TypeError('Unexpected publicKey parameter')
+
+    this.d = d
+  } else {
+    typeforce(types.ECPoint, Q)
+
+    this.__Q = Q
+  }
+
+  this.compressed = options.compressed === undefined ? true : options.compressed
+  this.network = options.network || NETWORKS.bitcoin
+}
+
+Object.defineProperty(ECPair.prototype, 'Q', {
+  get: function () {
+    if (!this.__Q && this.d) {
+      this.__Q = secp256k1.G.multiply(this.d)
+    }
+
+    return this.__Q
+  }
+})
+
+ECPair.fromPublicKeyBuffer = function (buffer, network) {
+  var Q = ecurve.Point.decodeFrom(secp256k1, buffer)
+
+  return new ECPair(null, Q, {
+    compressed: Q.compressed,
+    network: network
+  })
+}
+
+ECPair.fromWIF = function (string, network) {
+  network = network || NETWORKS.bitcoin
+  var buffer = bs58check.decode(string)
+
+  if (types.Array(network)) {
+    var version = buffer[0]
+
+    network = network.filter(function (network) {
+      return version === network.wif
+    }).pop() || {}
+  }
+
+  var decoded = wif.decodeRaw(network.wif, buffer)
+  var d = BigInteger.fromBuffer(decoded.d)
+
+  return new ECPair(d, null, {
+    compressed: decoded.compressed,
+    network: network
+  })
+}
+
+ECPair.makeRandom = function (options) {
+  options = options || {}
+
+  var rng = options.rng || randomBytes
+
+  var d
+  do {
+    var buffer = rng(32)
+    typeforce(types.Buffer256bit, buffer)
+
+    d = BigInteger.fromBuffer(buffer)
+  } while (d.signum() <= 0 || d.compareTo(secp256k1.n) >= 0)
+
+  return new ECPair(d, null, options)
+}
+
+ECPair.prototype.getAddress = function () {
+  var pubKey = this.getPublicKeyBuffer()
+  var pubKeyHash = bcrypto.hash160(pubKey)
+
+  var payload = new Buffer(21)
+  payload.writeUInt8(this.network.pubKeyHash, 0)
+  pubKeyHash.copy(payload, 1)
+
+  return bs58check.encode(payload)
+}
+
+ECPair.prototype.getNetwork = function () {
+  return this.network
+}
+
+ECPair.prototype.getPublicKeyBuffer = function () {
+  return this.Q.getEncoded(this.compressed)
+}
+
+ECPair.prototype.sign = function (hash) {
+  if (!this.d) throw new Error('Missing private key')
+
+  return ecdsa.sign(hash, this.d)
+}
+
+ECPair.prototype.toWIF = function () {
+  if (!this.d) throw new Error('Missing private key')
+
+  return wif.encode(this.network.wif, this.d.toBuffer(32), this.compressed)
+}
+
+ECPair.prototype.verify = function (hash, signature) {
+  return ecdsa.verify(hash, signature, this.Q)
+}
+
+module.exports = ECPair
+
+}).call(this,require("buffer").Buffer)
+},{"./crypto":23,"./ecdsa":24,"./networks":30,"./types":35,"bigi":4,"bs58check":7,"buffer":56,"ecurve":41,"randombytes":16,"typeforce":17,"wif":19}],26:[function(require,module,exports){
+(function (Buffer){
+var bip66 = require('bip66')
+var typeforce = require('typeforce')
+var types = require('./types')
+
+var BigInteger = require('bigi')
+
+function ECSignature (r, s) {
+  typeforce(types.tuple(types.BigInt, types.BigInt), arguments)
+
+  this.r = r
+  this.s = s
+}
+
+ECSignature.parseCompact = function (buffer) {
+  if (buffer.length !== 65) throw new Error('Invalid signature length')
+
+  var flagByte = buffer.readUInt8(0) - 27
+  if (flagByte !== (flagByte & 7)) throw new Error('Invalid signature parameter')
+
+  var compressed = !!(flagByte & 4)
+  var recoveryParam = flagByte & 3
+
+  var r = BigInteger.fromBuffer(buffer.slice(1, 33))
+  var s = BigInteger.fromBuffer(buffer.slice(33))
+
+  return {
+    compressed: compressed,
+    i: recoveryParam,
+    signature: new ECSignature(r, s)
+  }
+}
+
+ECSignature.fromDER = function (buffer) {
+  var decode = bip66.decode(buffer)
+  var r = BigInteger.fromDERInteger(decode.r)
+  var s = BigInteger.fromDERInteger(decode.s)
+
+  return new ECSignature(r, s)
+}
+
+// BIP62: 1 byte hashType flag (only 0x01, 0x02, 0x03, 0x81, 0x82 and 0x83 are allowed)
+ECSignature.parseScriptSignature = function (buffer) {
+  var hashType = buffer.readUInt8(buffer.length - 1)
+  var hashTypeMod = hashType & ~0x80
+
+  if (hashTypeMod <= 0x00 || hashTypeMod >= 0x04) throw new Error('Invalid hashType ' + hashType)
+
+  return {
+    signature: ECSignature.fromDER(buffer.slice(0, -1)),
+    hashType: hashType
+  }
+}
+
+ECSignature.prototype.toCompact = function (i, compressed) {
+  if (compressed) {
+    i += 4
+  }
+
+  i += 27
+
+  var buffer = new Buffer(65)
+  buffer.writeUInt8(i, 0)
+
+  this.r.toBuffer(32).copy(buffer, 1)
+  this.s.toBuffer(32).copy(buffer, 33)
+
+  return buffer
+}
+
+ECSignature.prototype.toDER = function () {
+  var r = new Buffer(this.r.toDERInteger())
+  var s = new Buffer(this.s.toDERInteger())
+
+  return bip66.encode(r, s)
+}
+
+ECSignature.prototype.toScriptSignature = function (hashType) {
+  var hashTypeMod = hashType & ~0x80
+  if (hashTypeMod <= 0 || hashTypeMod >= 4) throw new Error('Invalid hashType ' + hashType)
+
+  var hashTypeBuffer = new Buffer(1)
+  hashTypeBuffer.writeUInt8(hashType, 0)
+
+  return Buffer.concat([this.toDER(), hashTypeBuffer])
+}
+
+module.exports = ECSignature
+
+}).call(this,require("buffer").Buffer)
+},{"./types":35,"bigi":4,"bip66":6,"buffer":56,"typeforce":17}],27:[function(require,module,exports){
+(function (Buffer){
+var base58check = require('bs58check')
+var bcrypto = require('./crypto')
+var createHmac = require('create-hmac')
+var typeforce = require('typeforce')
+var types = require('./types')
+var NETWORKS = require('./networks')
+
+var BigInteger = require('bigi')
+var ECPair = require('./ecpair')
+
+var ecurve = require('ecurve')
+var curve = ecurve.getCurveByName('secp256k1')
+
+function HDNode (keyPair, chainCode) {
+  typeforce(types.tuple('ECPair', types.Buffer256bit), arguments)
+
+  if (!keyPair.compressed) throw new TypeError('BIP32 only allows compressed keyPairs')
+
+  this.keyPair = keyPair
+  this.chainCode = chainCode
+  this.depth = 0
+  this.index = 0
+  this.parentFingerprint = 0x00000000
+}
+
+HDNode.HIGHEST_BIT = 0x80000000
+HDNode.LENGTH = 78
+HDNode.MASTER_SECRET = new Buffer('Bitcoin seed')
+
+HDNode.fromSeedBuffer = function (seed, network) {
+  typeforce(types.tuple(types.Buffer, types.maybe(types.Network)), arguments)
+
+  if (seed.length < 16) throw new TypeError('Seed should be at least 128 bits')
+  if (seed.length > 64) throw new TypeError('Seed should be at most 512 bits')
+
+  var I = createHmac('sha512', HDNode.MASTER_SECRET).update(seed).digest()
+  var IL = I.slice(0, 32)
+  var IR = I.slice(32)
+
+  // In case IL is 0 or >= n, the master key is invalid
+  // This is handled by the ECPair constructor
+  var pIL = BigInteger.fromBuffer(IL)
+  var keyPair = new ECPair(pIL, null, {
+    network: network
+  })
+
+  return new HDNode(keyPair, IR)
+}
+
+HDNode.fromSeedHex = function (hex, network) {
+  return HDNode.fromSeedBuffer(new Buffer(hex, 'hex'), network)
+}
+
+HDNode.fromBase58 = function (string, networks) {
+  var buffer = base58check.decode(string)
+  if (buffer.length !== 78) throw new Error('Invalid buffer length')
+
+  // 4 bytes: version bytes
+  var version = buffer.readUInt32BE(0)
+  var network
+
+  // list of networks?
+  if (Array.isArray(networks)) {
+    network = networks.filter(function (network) {
+      return version === network.bip32.private ||
+             version === network.bip32.public
+    }).pop() || {}
+
+  // otherwise, assume a network object (or default to bitcoin)
+  } else {
+    network = networks || NETWORKS.bitcoin
+  }
+
+  if (version !== network.bip32.private &&
+    version !== network.bip32.public) throw new Error('Invalid network')
+
+  // 1 byte: depth: 0x00 for master nodes, 0x01 for level-1 descendants, ...
+  var depth = buffer[4]
+
+  // 4 bytes: the fingerprint of the parent's key (0x00000000 if master key)
+  var parentFingerprint = buffer.readUInt32BE(5)
+  if (depth === 0) {
+    if (parentFingerprint !== 0x00000000) throw new Error('Invalid parent fingerprint')
+  }
+
+  // 4 bytes: child number. This is the number i in xi = xpar/i, with xi the key being serialized.
+  // This is encoded in MSB order. (0x00000000 if master key)
+  var index = buffer.readUInt32BE(9)
+  if (depth === 0 && index !== 0) throw new Error('Invalid index')
+
+  // 32 bytes: the chain code
+  var chainCode = buffer.slice(13, 45)
+  var keyPair
+
+  // 33 bytes: private key data (0x00 + k)
+  if (version === network.bip32.private) {
+    if (buffer.readUInt8(45) !== 0x00) throw new Error('Invalid private key')
+
+    var d = BigInteger.fromBuffer(buffer.slice(46, 78))
+
+    keyPair = new ECPair(d, null, {
+      network: network
+    })
+
+  // 33 bytes: public key data (0x02 + X or 0x03 + X)
+  } else {
+    var Q = ecurve.Point.decodeFrom(curve, buffer.slice(45, 78))
+    if (!Q.compressed) throw new Error('Invalid public key')
+
+    // Verify that the X coordinate in the public point corresponds to a point on the curve.
+    // If not, the extended public key is invalid.
+    curve.validate(Q)
+
+    keyPair = new ECPair(null, Q, {
+      network: network
+    })
+  }
+
+  var hd = new HDNode(keyPair, chainCode)
+  hd.depth = depth
+  hd.index = index
+  hd.parentFingerprint = parentFingerprint
+
+  return hd
+}
+
+HDNode.prototype.getAddress = function () {
+  return this.keyPair.getAddress()
+}
+
+HDNode.prototype.getIdentifier = function () {
+  return bcrypto.hash160(this.keyPair.getPublicKeyBuffer())
+}
+
+HDNode.prototype.getFingerprint = function () {
+  return this.getIdentifier().slice(0, 4)
+}
+
+HDNode.prototype.getNetwork = function () {
+  return this.keyPair.getNetwork()
+}
+
+HDNode.prototype.getPublicKeyBuffer = function () {
+  return this.keyPair.getPublicKeyBuffer()
+}
+
+HDNode.prototype.neutered = function () {
+  var neuteredKeyPair = new ECPair(null, this.keyPair.Q, {
+    network: this.keyPair.network
+  })
+
+  var neutered = new HDNode(neuteredKeyPair, this.chainCode)
+  neutered.depth = this.depth
+  neutered.index = this.index
+  neutered.parentFingerprint = this.parentFingerprint
+
+  return neutered
+}
+
+HDNode.prototype.sign = function (hash) {
+  return this.keyPair.sign(hash)
+}
+
+HDNode.prototype.verify = function (hash, signature) {
+  return this.keyPair.verify(hash, signature)
+}
+
+HDNode.prototype.toBase58 = function (__isPrivate) {
+  if (__isPrivate !== undefined) throw new TypeError('Unsupported argument in 2.0.0')
+
+  // Version
+  var network = this.keyPair.network
+  var version = this.keyPair.d ? network.bip32.private : network.bip32.public
+  var buffer = new Buffer(78)
+
+  // 4 bytes: version bytes
+  buffer.writeUInt32BE(version, 0)
+
+  // 1 byte: depth: 0x00 for master nodes, 0x01 for level-1 descendants, ....
+  buffer.writeUInt8(this.depth, 4)
+
+  // 4 bytes: the fingerprint of the parent's key (0x00000000 if master key)
+  buffer.writeUInt32BE(this.parentFingerprint, 5)
+
+  // 4 bytes: child number. This is the number i in xi = xpar/i, with xi the key being serialized.
+  // This is encoded in big endian. (0x00000000 if master key)
+  buffer.writeUInt32BE(this.index, 9)
+
+  // 32 bytes: the chain code
+  this.chainCode.copy(buffer, 13)
+
+  // 33 bytes: the public key or private key data
+  if (this.keyPair.d) {
+    // 0x00 + k for private keys
+    buffer.writeUInt8(0, 45)
+    this.keyPair.d.toBuffer(32).copy(buffer, 46)
+
+  // 33 bytes: the public key
+  } else {
+    // X9.62 encoding for public keys
+    this.keyPair.getPublicKeyBuffer().copy(buffer, 45)
+  }
+
+  return base58check.encode(buffer)
+}
+
+// https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#child-key-derivation-ckd-functions
+HDNode.prototype.derive = function (index) {
+  var isHardened = index >= HDNode.HIGHEST_BIT
+  var data = new Buffer(37)
+
+  // Hardened child
+  if (isHardened) {
+    if (!this.keyPair.d) throw new TypeError('Could not derive hardened child key')
+
+    // data = 0x00 || ser256(kpar) || ser32(index)
+    data[0] = 0x00
+    this.keyPair.d.toBuffer(32).copy(data, 1)
+    data.writeUInt32BE(index, 33)
+
+  // Normal child
+  } else {
+    // data = serP(point(kpar)) || ser32(index)
+    //      = serP(Kpar) || ser32(index)
+    this.keyPair.getPublicKeyBuffer().copy(data, 0)
+    data.writeUInt32BE(index, 33)
+  }
+
+  var I = createHmac('sha512', this.chainCode).update(data).digest()
+  var IL = I.slice(0, 32)
+  var IR = I.slice(32)
+
+  var pIL = BigInteger.fromBuffer(IL)
+
+  // In case parse256(IL) >= n, proceed with the next value for i
+  if (pIL.compareTo(curve.n) >= 0) {
+    return this.derive(index + 1)
+  }
+
+  // Private parent key -> private child key
+  var derivedKeyPair
+  if (this.keyPair.d) {
+    // ki = parse256(IL) + kpar (mod n)
+    var ki = pIL.add(this.keyPair.d).mod(curve.n)
+
+    // In case ki == 0, proceed with the next value for i
+    if (ki.signum() === 0) {
+      return this.derive(index + 1)
+    }
+
+    derivedKeyPair = new ECPair(ki, null, {
+      network: this.keyPair.network
+    })
+
+  // Public parent key -> public child key
+  } else {
+    // Ki = point(parse256(IL)) + Kpar
+    //    = G*IL + Kpar
+    var Ki = curve.G.multiply(pIL).add(this.keyPair.Q)
+
+    // In case Ki is the point at infinity, proceed with the next value for i
+    if (curve.isInfinity(Ki)) {
+      return this.derive(index + 1)
+    }
+
+    derivedKeyPair = new ECPair(null, Ki, {
+      network: this.keyPair.network
+    })
+  }
+
+  var hd = new HDNode(derivedKeyPair, IR)
+  hd.depth = this.depth + 1
+  hd.index = index
+  hd.parentFingerprint = this.getFingerprint().readUInt32BE(0)
+
+  return hd
+}
+
+HDNode.prototype.deriveHardened = function (index) {
+  // Only derives hardened private keys by default
+  return this.derive(index + HDNode.HIGHEST_BIT)
+}
+
+HDNode.prototype.toString = HDNode.prototype.toBase58
+
+module.exports = HDNode
+
+}).call(this,require("buffer").Buffer)
+},{"./crypto":23,"./ecpair":25,"./networks":30,"./types":35,"bigi":4,"bs58check":7,"buffer":56,"create-hmac":14,"ecurve":41,"typeforce":17}],28:[function(require,module,exports){
+module.exports = {
+  Block: require('./block'),
+  ECPair: require('./ecpair'),
+  ECSignature: require('./ecsignature'),
+  HDNode: require('./hdnode'),
+  Transaction: require('./transaction'),
+  TransactionBuilder: require('./transaction_builder'),
+
+  address: require('./address'),
+  bufferutils: require('./bufferutils'),
+  crypto: require('./crypto'),
+  message: require('./message'),
+  networks: require('./networks'),
+  opcodes: require('./opcodes'),
+  script: require('./script')
+}
+
+},{"./address":20,"./block":21,"./bufferutils":22,"./crypto":23,"./ecpair":25,"./ecsignature":26,"./hdnode":27,"./message":29,"./networks":30,"./opcodes":31,"./script":32,"./transaction":33,"./transaction_builder":34}],29:[function(require,module,exports){
+(function (Buffer){
+var bufferutils = require('./bufferutils')
+var bcrypto = require('./crypto')
+var ecdsa = require('./ecdsa')
+var networks = require('./networks')
+
+var BigInteger = require('bigi')
+var ECPair = require('./ecpair')
+var ECSignature = require('./ecsignature')
+
+function magicHash (message, network) {
+  var messagePrefix = new Buffer(network.messagePrefix)
+  var messageBuffer = new Buffer(message)
+  var lengthBuffer = bufferutils.varIntBuffer(messageBuffer.length)
+
+  var buffer = Buffer.concat([messagePrefix, lengthBuffer, messageBuffer])
+  return bcrypto.hash256(buffer)
+}
+
+function sign (keyPair, message, network) {
+  network = network || networks.bitcoin
+
+  var hash = magicHash(message, network)
+  var signature = keyPair.sign(hash)
+  var e = BigInteger.fromBuffer(hash)
+  var i = ecdsa.calcPubKeyRecoveryParam(e, signature, keyPair.Q)
+
+  return signature.toCompact(i, keyPair.compressed)
+}
+
+function verify (address, signature, message, network) {
+  if (!Buffer.isBuffer(signature)) {
+    signature = new Buffer(signature, 'base64')
+  }
+
+  network = network || networks.bitcoin
+
+  var hash = magicHash(message, network)
+  var parsed = ECSignature.parseCompact(signature)
+  var e = BigInteger.fromBuffer(hash)
+  var Q = ecdsa.recoverPubKey(e, parsed.signature, parsed.i)
+
+  var keyPair = new ECPair(null, Q, {
+    compressed: parsed.compressed,
+    network: network
+  })
+
+  return keyPair.getAddress() === address
+}
+
+module.exports = {
+  magicHash: magicHash,
+  sign: sign,
+  verify: verify
+}
+
+}).call(this,require("buffer").Buffer)
+},{"./bufferutils":22,"./crypto":23,"./ecdsa":24,"./ecpair":25,"./ecsignature":26,"./networks":30,"bigi":4,"buffer":56}],30:[function(require,module,exports){
+// https://en.bitcoin.it/wiki/List_of_address_prefixes
+// Dogecoin BIP32 is a proposed standard: https://bitcointalk.org/index.php?topic=409731
+
+module.exports = {
+  bitcoin: {
+    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    bip32: {
+      public: 0x0488b21e,
+      private: 0x0488ade4
+    },
+    pubKeyHash: 0x00,
+    scriptHash: 0x05,
+    wif: 0x80,
+    dustThreshold: 546 // https://github.com/bitcoin/bitcoin/blob/v0.9.2/src/core.h#L151-L162
+  },
+  testnet: {
+    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    bip32: {
+      public: 0x043587cf,
+      private: 0x04358394
+    },
+    pubKeyHash: 0x6f,
+    scriptHash: 0xc4,
+    wif: 0xef,
+    dustThreshold: 546
+  },
+  litecoin: {
+    messagePrefix: '\x19Litecoin Signed Message:\n',
+    bip32: {
+      public: 0x019da462,
+      private: 0x019d9cfe
+    },
+    pubKeyHash: 0x30,
+    scriptHash: 0x05,
+    wif: 0xb0,
+    dustThreshold: 0 // https://github.com/litecoin-project/litecoin/blob/v0.8.7.2/src/main.cpp#L360-L365
+  },
+  dogecoin: {
+    messagePrefix: '\x19Dogecoin Signed Message:\n',
+    bip32: {
+      public: 0x02facafd,
+      private: 0x02fac398
+    },
+    pubKeyHash: 0x1e,
+    scriptHash: 0x16,
+    wif: 0x9e,
+    dustThreshold: 0 // https://github.com/dogecoin/dogecoin/blob/v1.7.1/src/core.h#L155-L160
+  }
+}
+
+},{}],31:[function(require,module,exports){
+module.exports={
+  "OP_FALSE": 0,
+  "OP_0": 0,
+  "OP_PUSHDATA1": 76,
+  "OP_PUSHDATA2": 77,
+  "OP_PUSHDATA4": 78,
+  "OP_1NEGATE": 79,
+  "OP_RESERVED": 80,
+  "OP_1": 81,
+  "OP_TRUE": 81,
+  "OP_2": 82,
+  "OP_3": 83,
+  "OP_4": 84,
+  "OP_5": 85,
+  "OP_6": 86,
+  "OP_7": 87,
+  "OP_8": 88,
+  "OP_9": 89,
+  "OP_10": 90,
+  "OP_11": 91,
+  "OP_12": 92,
+  "OP_13": 93,
+  "OP_14": 94,
+  "OP_15": 95,
+  "OP_16": 96,
+
+  "OP_NOP": 97,
+  "OP_VER": 98,
+  "OP_IF": 99,
+  "OP_NOTIF": 100,
+  "OP_VERIF": 101,
+  "OP_VERNOTIF": 102,
+  "OP_ELSE": 103,
+  "OP_ENDIF": 104,
+  "OP_VERIFY": 105,
+  "OP_RETURN": 106,
+
+  "OP_TOALTSTACK": 107,
+  "OP_FROMALTSTACK": 108,
+  "OP_2DROP": 109,
+  "OP_2DUP": 110,
+  "OP_3DUP": 111,
+  "OP_2OVER": 112,
+  "OP_2ROT": 113,
+  "OP_2SWAP": 114,
+  "OP_IFDUP": 115,
+  "OP_DEPTH": 116,
+  "OP_DROP": 117,
+  "OP_DUP": 118,
+  "OP_NIP": 119,
+  "OP_OVER": 120,
+  "OP_PICK": 121,
+  "OP_ROLL": 122,
+  "OP_ROT": 123,
+  "OP_SWAP": 124,
+  "OP_TUCK": 125,
+
+  "OP_CAT": 126,
+  "OP_SUBSTR": 127,
+  "OP_LEFT": 128,
+  "OP_RIGHT": 129,
+  "OP_SIZE": 130,
+
+  "OP_INVERT": 131,
+  "OP_AND": 132,
+  "OP_OR": 133,
+  "OP_XOR": 134,
+  "OP_EQUAL": 135,
+  "OP_EQUALVERIFY": 136,
+  "OP_RESERVED1": 137,
+  "OP_RESERVED2": 138,
+
+  "OP_1ADD": 139,
+  "OP_1SUB": 140,
+  "OP_2MUL": 141,
+  "OP_2DIV": 142,
+  "OP_NEGATE": 143,
+  "OP_ABS": 144,
+  "OP_NOT": 145,
+  "OP_0NOTEQUAL": 146,
+  "OP_ADD": 147,
+  "OP_SUB": 148,
+  "OP_MUL": 149,
+  "OP_DIV": 150,
+  "OP_MOD": 151,
+  "OP_LSHIFT": 152,
+  "OP_RSHIFT": 153,
+
+  "OP_BOOLAND": 154,
+  "OP_BOOLOR": 155,
+  "OP_NUMEQUAL": 156,
+  "OP_NUMEQUALVERIFY": 157,
+  "OP_NUMNOTEQUAL": 158,
+  "OP_LESSTHAN": 159,
+  "OP_GREATERTHAN": 160,
+  "OP_LESSTHANOREQUAL": 161,
+  "OP_GREATERTHANOREQUAL": 162,
+  "OP_MIN": 163,
+  "OP_MAX": 164,
+
+  "OP_WITHIN": 165,
+
+  "OP_RIPEMD160": 166,
+  "OP_SHA1": 167,
+  "OP_SHA256": 168,
+  "OP_HASH160": 169,
+  "OP_HASH256": 170,
+  "OP_CODESEPARATOR": 171,
+  "OP_CHECKSIG": 172,
+  "OP_CHECKSIGVERIFY": 173,
+  "OP_CHECKMULTISIG": 174,
+  "OP_CHECKMULTISIGVERIFY": 175,
+
+  "OP_NOP1": 176,
+  "OP_NOP2": 177,
+  "OP_NOP3": 178,
+  "OP_NOP4": 179,
+  "OP_NOP5": 180,
+  "OP_NOP6": 181,
+  "OP_NOP7": 182,
+  "OP_NOP8": 183,
+  "OP_NOP9": 184,
+  "OP_NOP10": 185,
+
+  "OP_PUBKEYHASH": 253,
+  "OP_PUBKEY": 254,
+  "OP_INVALIDOPCODE": 255
+}
+
+},{}],32:[function(require,module,exports){
+(function (Buffer){
+var bip66 = require('bip66')
+var bufferutils = require('./bufferutils')
+var typeforce = require('typeforce')
+var types = require('./types')
+
+var OPS = require('./opcodes')
+var REVERSE_OPS = (function () {
+  var result = {}
+  for (var op in OPS) {
+    var code = OPS[op]
+    result[code] = op
+  }
+  return result
+})()
+
+var OP_INT_BASE = OPS.OP_RESERVED // OP_1 - 1
+
+function toASM (chunks) {
+  if (types.Buffer(chunks)) {
+    chunks = decompile(chunks)
+  }
+
+  return chunks.map(function (chunk) {
+    // data?
+    if (Buffer.isBuffer(chunk)) return chunk.toString('hex')
+
+    // opcode!
+    return REVERSE_OPS[chunk]
+  }).join(' ')
+}
+
+function fromASM (asm) {
+  typeforce(types.String, asm)
+
+  return compile(asm.split(' ').map(function (chunkStr) {
+    // opcode?
+    if (OPS[chunkStr] !== undefined) return OPS[chunkStr]
+
+    // data!
+    return new Buffer(chunkStr, 'hex')
+  }))
+}
+
+function compile (chunks) {
+  // TODO: remove me
+  if (types.Buffer(chunks)) return chunks
+
+  typeforce(types.Array, chunks)
+
+  var bufferSize = chunks.reduce(function (accum, chunk) {
+    // data chunk
+    if (Buffer.isBuffer(chunk)) {
+      return accum + bufferutils.pushDataSize(chunk.length) + chunk.length
+    }
+
+    // opcode
+    return accum + 1
+  }, 0.0)
+
+  var buffer = new Buffer(bufferSize)
+  var offset = 0
+
+  chunks.forEach(function (chunk) {
+    // data chunk
+    if (Buffer.isBuffer(chunk)) {
+      offset += bufferutils.writePushDataInt(buffer, chunk.length, offset)
+
+      chunk.copy(buffer, offset)
+      offset += chunk.length
+
+    // opcode
+    } else {
+      buffer.writeUInt8(chunk, offset)
+      offset += 1
+    }
+  })
+
+  if (offset !== buffer.length) throw new Error('Could not decode chunks')
+  return buffer
+}
+
+function decompile (buffer) {
+  // TODO: remove me
+  if (types.Array(buffer)) return buffer
+
+  typeforce(types.Buffer, buffer)
+
+  var chunks = []
+  var i = 0
+
+  while (i < buffer.length) {
+    var opcode = buffer[i]
+
+    // data chunk
+    if ((opcode > OPS.OP_0) && (opcode <= OPS.OP_PUSHDATA4)) {
+      var d = bufferutils.readPushDataInt(buffer, i)
+
+      // did reading a pushDataInt fail? empty script
+      if (d === null) return []
+      i += d.size
+
+      // attempt to read too much data? empty script
+      if (i + d.number > buffer.length) return []
+
+      var data = buffer.slice(i, i + d.number)
+      i += d.number
+
+      chunks.push(data)
+
+    // opcode
+    } else {
+      chunks.push(opcode)
+
+      i += 1
+    }
+  }
+
+  return chunks
+}
+
+function isCanonicalPubKey (buffer) {
+  if (!Buffer.isBuffer(buffer)) return false
+  if (buffer.length < 33) return false
+
+  switch (buffer[0]) {
+    case 0x02:
+    case 0x03:
+      return buffer.length === 33
+    case 0x04:
+      return buffer.length === 65
+  }
+
+  return false
+}
+
+function isCanonicalSignature (buffer) {
+  if (!Buffer.isBuffer(buffer)) return false
+  if (!isDefinedHashType(buffer[buffer.length - 1])) return false
+
+  return bip66.check(buffer.slice(0, -1))
+}
+
+function isDefinedHashType (hashType) {
+  var hashTypeMod = hashType & ~0x80
+
+// return hashTypeMod > SIGHASH_ALL && hashTypeMod < SIGHASH_SINGLE
+  return hashTypeMod > 0x00 && hashTypeMod < 0x04
+}
+
+function isPubKeyHashInput (script) {
+  var chunks = decompile(script)
+
+  return chunks.length === 2 &&
+    isCanonicalSignature(chunks[0]) &&
+    isCanonicalPubKey(chunks[1])
+}
+
+function isPubKeyHashOutput (script) {
+  var buffer = compile(script)
+
+  return buffer.length === 25 &&
+    buffer[0] === OPS.OP_DUP &&
+    buffer[1] === OPS.OP_HASH160 &&
+    buffer[2] === 0x14 &&
+    buffer[23] === OPS.OP_EQUALVERIFY &&
+    buffer[24] === OPS.OP_CHECKSIG
+}
+
+function isPubKeyInput (script) {
+  var chunks = decompile(script)
+
+  return chunks.length === 1 &&
+    isCanonicalSignature(chunks[0])
+}
+
+function isPubKeyOutput (script) {
+  var chunks = decompile(script)
+
+  return chunks.length === 2 &&
+    isCanonicalPubKey(chunks[0]) &&
+    chunks[1] === OPS.OP_CHECKSIG
+}
+
+function isScriptHashInput (script, allowIncomplete) {
+  var chunks = decompile(script)
+  if (chunks.length < 2) return false
+
+  var lastChunk = chunks[chunks.length - 1]
+  if (!Buffer.isBuffer(lastChunk)) return false
+
+  var scriptSigChunks = chunks.slice(0, -1)
+  var redeemScriptChunks = decompile(lastChunk)
+
+  // is redeemScript a valid script?
+  if (redeemScriptChunks.length === 0) return false
+
+  return classifyInput(scriptSigChunks, allowIncomplete) === classifyOutput(redeemScriptChunks)
+}
+
+function isScriptHashOutput (script) {
+  var buffer = compile(script)
+
+  return buffer.length === 23 &&
+    buffer[0] === OPS.OP_HASH160 &&
+    buffer[1] === 0x14 &&
+    buffer[22] === OPS.OP_EQUAL
+}
+
+// allowIncomplete is to account for combining signatures
+// See https://github.com/bitcoin/bitcoin/blob/f425050546644a36b0b8e0eb2f6934a3e0f6f80f/src/script/sign.cpp#L195-L197
+function isMultisigInput (script, allowIncomplete) {
+  var chunks = decompile(script)
+  if (chunks.length < 2) return false
+  if (chunks[0] !== OPS.OP_0) return false
+
+  if (allowIncomplete) {
+    return chunks.slice(1).every(function (chunk) {
+      return chunk === OPS.OP_0 || isCanonicalSignature(chunk)
+    })
+  }
+
+  return chunks.slice(1).every(isCanonicalSignature)
+}
+
+function isMultisigOutput (script) {
+  var chunks = decompile(script)
+  if (chunks.length < 4) return false
+  if (chunks[chunks.length - 1] !== OPS.OP_CHECKMULTISIG) return false
+
+  var mOp = chunks[0]
+  var nOp = chunks[chunks.length - 2]
+
+  if (!types.Number(mOp)) return false
+  if (!types.Number(nOp)) return false
+
+  var m = mOp - OP_INT_BASE
+  var n = nOp - OP_INT_BASE
+
+  // 0 < m <= n <= 16
+  if (m <= 0) return false
+  if (m > n) return false
+  if (n > 16) return false
+  if (n !== chunks.length - 3) return false
+
+  return chunks.slice(1, -2).every(isCanonicalPubKey)
+}
+
+function isNullDataOutput (script) {
+  var chunks = decompile(script)
+  return chunks[0] === OPS.OP_RETURN
+}
+
+function classifyOutput (script) {
+  var chunks = decompile(script)
+
+  if (isPubKeyHashOutput(chunks)) {
+    return 'pubkeyhash'
+  } else if (isScriptHashOutput(chunks)) {
+    return 'scripthash'
+  } else if (isMultisigOutput(chunks)) {
+    return 'multisig'
+  } else if (isPubKeyOutput(chunks)) {
+    return 'pubkey'
+  } else if (isNullDataOutput(chunks)) {
+    return 'nulldata'
+  }
+
+  return 'nonstandard'
+}
+
+function classifyInput (script, allowIncomplete) {
+  var chunks = decompile(script)
+
+  if (isPubKeyHashInput(chunks)) {
+    return 'pubkeyhash'
+  } else if (isMultisigInput(chunks, allowIncomplete)) {
+    return 'multisig'
+  } else if (isScriptHashInput(chunks, allowIncomplete)) {
+    return 'scripthash'
+  } else if (isPubKeyInput(chunks)) {
+    return 'pubkey'
+  }
+
+  return 'nonstandard'
+}
+
+// Standard Script Templates
+// {pubKey} OP_CHECKSIG
+function pubKeyOutput (pubKey) {
+  return compile([pubKey, OPS.OP_CHECKSIG])
+}
+
+// OP_DUP OP_HASH160 {pubKeyHash} OP_EQUALVERIFY OP_CHECKSIG
+function pubKeyHashOutput (pubKeyHash) {
+  typeforce(types.Hash160bit, pubKeyHash)
+
+  return compile([OPS.OP_DUP, OPS.OP_HASH160, pubKeyHash, OPS.OP_EQUALVERIFY, OPS.OP_CHECKSIG])
+}
+
+// OP_HASH160 {scriptHash} OP_EQUAL
+function scriptHashOutput (scriptHash) {
+  typeforce(types.Hash160bit, scriptHash)
+
+  return compile([OPS.OP_HASH160, scriptHash, OPS.OP_EQUAL])
+}
+
+// m [pubKeys ...] n OP_CHECKMULTISIG
+function multisigOutput (m, pubKeys) {
+  typeforce(types.tuple(types.Number, [types.Buffer]), arguments)
+
+  var n = pubKeys.length
+  if (n < m) throw new Error('Not enough pubKeys provided')
+
+  return compile([].concat(
+    OP_INT_BASE + m,
+    pubKeys,
+    OP_INT_BASE + n,
+    OPS.OP_CHECKMULTISIG
+  ))
+}
+
+// {signature}
+function pubKeyInput (signature) {
+  typeforce(types.Buffer, signature)
+
+  return compile([signature])
+}
+
+// {signature} {pubKey}
+function pubKeyHashInput (signature, pubKey) {
+  typeforce(types.tuple(types.Buffer, types.Buffer), arguments)
+
+  return compile([signature, pubKey])
+}
+
+// <scriptSig> {serialized scriptPubKey script}
+function scriptHashInput (scriptSig, scriptPubKey) {
+  var scriptSigChunks = decompile(scriptSig)
+  var serializedScriptPubKey = compile(scriptPubKey)
+
+  return compile([].concat(
+    scriptSigChunks,
+    serializedScriptPubKey
+  ))
+}
+
+// OP_0 [signatures ...]
+function multisigInput (signatures, scriptPubKey) {
+  if (scriptPubKey) {
+    var chunks = decompile(scriptPubKey)
+    if (!isMultisigOutput(chunks)) throw new Error('Expected multisig scriptPubKey')
+
+    var mOp = chunks[0]
+    var nOp = chunks[chunks.length - 2]
+    var m = mOp - OP_INT_BASE
+    var n = nOp - OP_INT_BASE
+
+    if (signatures.length < m) throw new Error('Not enough signatures provided')
+    if (signatures.length > n) throw new Error('Too many signatures provided')
+  }
+
+  return compile([].concat(OPS.OP_0, signatures))
+}
+
+function nullDataOutput (data) {
+  return compile([OPS.OP_RETURN, data])
+}
+
+module.exports = {
+  compile: compile,
+  decompile: decompile,
+  fromASM: fromASM,
+  toASM: toASM,
+
+  isCanonicalPubKey: isCanonicalPubKey,
+  isCanonicalSignature: isCanonicalSignature,
+  isDefinedHashType: isDefinedHashType,
+  isPubKeyHashInput: isPubKeyHashInput,
+  isPubKeyHashOutput: isPubKeyHashOutput,
+  isPubKeyInput: isPubKeyInput,
+  isPubKeyOutput: isPubKeyOutput,
+  isScriptHashInput: isScriptHashInput,
+  isScriptHashOutput: isScriptHashOutput,
+  isMultisigInput: isMultisigInput,
+  isMultisigOutput: isMultisigOutput,
+  isNullDataOutput: isNullDataOutput,
+  classifyOutput: classifyOutput,
+  classifyInput: classifyInput,
+  pubKeyOutput: pubKeyOutput,
+  pubKeyHashOutput: pubKeyHashOutput,
+  scriptHashOutput: scriptHashOutput,
+  multisigOutput: multisigOutput,
+  pubKeyInput: pubKeyInput,
+  pubKeyHashInput: pubKeyHashInput,
+  scriptHashInput: scriptHashInput,
+  multisigInput: multisigInput,
+  nullDataOutput: nullDataOutput
+}
+
+}).call(this,require("buffer").Buffer)
+},{"./bufferutils":22,"./opcodes":31,"./types":35,"bip66":6,"buffer":56,"typeforce":17}],33:[function(require,module,exports){
+(function (Buffer){
+var bcrypto = require('./crypto')
+var bscript = require('./script')
+var bufferutils = require('./bufferutils')
+var opcodes = require('./opcodes')
+var typeforce = require('typeforce')
+var types = require('./types')
+
+function Transaction () {
+  this.version = 1
+  this.locktime = 0
+  this.ins = []
+  this.outs = []
+}
+
+Transaction.DEFAULT_SEQUENCE = 0xffffffff
+Transaction.SIGHASH_ALL = 0x01
+Transaction.SIGHASH_NONE = 0x02
+Transaction.SIGHASH_SINGLE = 0x03
+Transaction.SIGHASH_ANYONECANPAY = 0x80
+
+Transaction.fromBuffer = function (buffer, __noStrict) {
+  var offset = 0
+  function readSlice (n) {
+    offset += n
+    return buffer.slice(offset - n, offset)
+  }
+
+  function readUInt32 () {
+    var i = buffer.readUInt32LE(offset)
+    offset += 4
+    return i
+  }
+
+  function readUInt64 () {
+    var i = bufferutils.readUInt64LE(buffer, offset)
+    offset += 8
+    return i
+  }
+
+  function readVarInt () {
+    var vi = bufferutils.readVarInt(buffer, offset)
+    offset += vi.size
+    return vi.number
+  }
+
+  function readScript () {
+    return readSlice(readVarInt())
+  }
+
+  var tx = new Transaction()
+  tx.version = readUInt32()
+
+  var vinLen = readVarInt()
+  for (var i = 0; i < vinLen; ++i) {
+    tx.ins.push({
+      hash: readSlice(32),
+      index: readUInt32(),
+      script: readScript(),
+      sequence: readUInt32()
+    })
+  }
+
+  var voutLen = readVarInt()
+  for (i = 0; i < voutLen; ++i) {
+    tx.outs.push({
+      value: readUInt64(),
+      script: readScript()
+    })
+  }
+
+  tx.locktime = readUInt32()
+
+  if (__noStrict) return tx
+  if (offset !== buffer.length) throw new Error('Transaction has unexpected data')
+
+  return tx
+}
+
+Transaction.fromHex = function (hex) {
+  return Transaction.fromBuffer(new Buffer(hex, 'hex'))
+}
+
+Transaction.isCoinbaseHash = function (buffer) {
+  return Array.prototype.every.call(buffer, function (x) {
+    return x === 0
+  })
+}
+
+var EMPTY_SCRIPT = new Buffer(0)
+
+Transaction.prototype.addInput = function (hash, index, sequence, scriptSig) {
+  typeforce(types.tuple(
+    types.Hash256bit,
+    types.UInt32,
+    types.maybe(types.UInt32),
+    types.maybe(types.Buffer)
+  ), arguments)
+
+  if (types.Null(sequence)) {
+    sequence = Transaction.DEFAULT_SEQUENCE
+  }
+
+  // Add the input and return the input's index
+  return (this.ins.push({
+    hash: hash,
+    index: index,
+    script: scriptSig || EMPTY_SCRIPT,
+    sequence: sequence
+  }) - 1)
+}
+
+Transaction.prototype.addOutput = function (scriptPubKey, value) {
+  typeforce(types.tuple(types.Buffer, types.UInt53), arguments)
+
+  // Add the output and return the output's index
+  return (this.outs.push({
+    script: scriptPubKey,
+    value: value
+  }) - 1)
+}
+
+Transaction.prototype.byteLength = function () {
+  function scriptSize (someScript) {
+    var length = someScript.length
+
+    return bufferutils.varIntSize(length) + length
+  }
+
+  return (
+    8 +
+    bufferutils.varIntSize(this.ins.length) +
+    bufferutils.varIntSize(this.outs.length) +
+    this.ins.reduce(function (sum, input) { return sum + 40 + scriptSize(input.script) }, 0) +
+    this.outs.reduce(function (sum, output) { return sum + 8 + scriptSize(output.script) }, 0)
+  )
+}
+
+Transaction.prototype.clone = function () {
+  var newTx = new Transaction()
+  newTx.version = this.version
+  newTx.locktime = this.locktime
+
+  newTx.ins = this.ins.map(function (txIn) {
+    return {
+      hash: txIn.hash,
+      index: txIn.index,
+      script: txIn.script,
+      sequence: txIn.sequence
+    }
+  })
+
+  newTx.outs = this.outs.map(function (txOut) {
+    return {
+      script: txOut.script,
+      value: txOut.value
+    }
+  })
+
+  return newTx
+}
+
+var ONE = new Buffer('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
+var VALUE_UINT64_MAX = new Buffer('ffffffffffffffff', 'hex')
+
+/**
+ * Hash transaction for signing a specific input.
+ *
+ * Bitcoin uses a different hash for each signed transaction input.
+ * This method copies the transaction, makes the necessary changes based on the
+ * hashType, and then hashes the result.
+ * This hash can then be used to sign the provided transaction input.
+ */
+Transaction.prototype.hashForSignature = function (inIndex, prevOutScript, hashType) {
+  typeforce(types.tuple(types.UInt32, types.Buffer, /* types.UInt8 */ types.Number), arguments)
+
+  // https://github.com/bitcoin/bitcoin/blob/master/src/test/sighash_tests.cpp#L29
+  if (inIndex >= this.ins.length) return ONE
+
+  var txTmp = this.clone()
+
+  // in case concatenating two scripts ends up with two codeseparators,
+  // or an extra one at the end, this prevents all those possible incompatibilities.
+  var hashScript = bscript.compile(bscript.decompile(prevOutScript).filter(function (x) {
+    return x !== opcodes.OP_CODESEPARATOR
+  }))
+  var i
+
+  // blank out other inputs' signatures
+  txTmp.ins.forEach(function (input) { input.script = EMPTY_SCRIPT })
+  txTmp.ins[inIndex].script = hashScript
+
+  // blank out some of the inputs
+  if ((hashType & 0x1f) === Transaction.SIGHASH_NONE) {
+    // wildcard payee
+    txTmp.outs = []
+
+    // let the others update at will
+    txTmp.ins.forEach(function (input, i) {
+      if (i !== inIndex) {
+        input.sequence = 0
+      }
+    })
+  } else if ((hashType & 0x1f) === Transaction.SIGHASH_SINGLE) {
+    var nOut = inIndex
+
+    // only lock-in the txOut payee at same index as txIn
+    // https://github.com/bitcoin/bitcoin/blob/master/src/test/sighash_tests.cpp#L60
+    if (nOut >= this.outs.length) return ONE
+
+    txTmp.outs = txTmp.outs.slice(0, nOut + 1)
+
+    // blank all other outputs (clear scriptPubKey, value === -1)
+    var stubOut = {
+      script: EMPTY_SCRIPT,
+      valueBuffer: VALUE_UINT64_MAX
+    }
+
+    for (i = 0; i < nOut; i++) {
+      txTmp.outs[i] = stubOut
+    }
+
+    // let the others update at will
+    txTmp.ins.forEach(function (input, i) {
+      if (i !== inIndex) {
+        input.sequence = 0
+      }
+    })
+  }
+
+  // blank out other inputs completely, not recommended for open transactions
+  if (hashType & Transaction.SIGHASH_ANYONECANPAY) {
+    txTmp.ins[0] = txTmp.ins[inIndex]
+    txTmp.ins = txTmp.ins.slice(0, 1)
+  }
+
+  // serialize and hash
+  var buffer = new Buffer(txTmp.byteLength() + 4)
+  buffer.writeInt32LE(hashType, buffer.length - 4)
+  txTmp.toBuffer().copy(buffer, 0)
+
+  return bcrypto.hash256(buffer)
+}
+
+Transaction.prototype.getHash = function () {
+  return bcrypto.hash256(this.toBuffer())
+}
+
+Transaction.prototype.getId = function () {
+  // transaction hash's are displayed in reverse order
+  return [].reverse.call(this.getHash()).toString('hex')
+}
+
+Transaction.prototype.toBuffer = function () {
+  var buffer = new Buffer(this.byteLength())
+
+  var offset = 0
+  function writeSlice (slice) {
+    slice.copy(buffer, offset)
+    offset += slice.length
+  }
+
+  function writeUInt32 (i) {
+    buffer.writeUInt32LE(i, offset)
+    offset += 4
+  }
+
+  function writeUInt64 (i) {
+    bufferutils.writeUInt64LE(buffer, i, offset)
+    offset += 8
+  }
+
+  function writeVarInt (i) {
+    var n = bufferutils.writeVarInt(buffer, i, offset)
+    offset += n
+  }
+
+  writeUInt32(this.version)
+  writeVarInt(this.ins.length)
+
+  this.ins.forEach(function (txIn) {
+    writeSlice(txIn.hash)
+    writeUInt32(txIn.index)
+    writeVarInt(txIn.script.length)
+    writeSlice(txIn.script)
+    writeUInt32(txIn.sequence)
+  })
+
+  writeVarInt(this.outs.length)
+  this.outs.forEach(function (txOut) {
+    if (!txOut.valueBuffer) {
+      writeUInt64(txOut.value)
+    } else {
+      writeSlice(txOut.valueBuffer)
+    }
+
+    writeVarInt(txOut.script.length)
+    writeSlice(txOut.script)
+  })
+
+  writeUInt32(this.locktime)
+
+  return buffer
+}
+
+Transaction.prototype.toHex = function () {
+  return this.toBuffer().toString('hex')
+}
+
+Transaction.prototype.setInputScript = function (index, scriptSig) {
+  typeforce(types.tuple(types.Number, types.Buffer), arguments)
+
+  this.ins[index].script = scriptSig
+}
+
+module.exports = Transaction
+
+}).call(this,require("buffer").Buffer)
+},{"./bufferutils":22,"./crypto":23,"./opcodes":31,"./script":32,"./types":35,"buffer":56,"typeforce":17}],34:[function(require,module,exports){
+(function (Buffer){
+var baddress = require('./address')
+var bcrypto = require('./crypto')
+var bscript = require('./script')
+var bufferEquals = require('buffer-equals')
+var networks = require('./networks')
+var ops = require('./opcodes')
+
+var ECPair = require('./ecpair')
+var ECSignature = require('./ecsignature')
+var Transaction = require('./transaction')
+
+// re-orders signatures to match pubKeys, fills undefined otherwise
+function fixMSSignatures (transaction, vin, pubKeys, signatures, prevOutScript, hashType, skipPubKey) {
+  // maintain a local copy of unmatched signatures
+  var unmatched = signatures.slice()
+  var cache = {}
+
+  return pubKeys.map(function (pubKey) {
+    // skip optionally provided pubKey
+    if (skipPubKey && bufferEquals(skipPubKey, pubKey)) return undefined
+
+    var matched
+    var keyPair2 = ECPair.fromPublicKeyBuffer(pubKey)
+
+    // check for a matching signature
+    unmatched.some(function (signature, i) {
+      // skip if undefined || OP_0
+      if (!signature) return false
+
+      var signatureHash = cache[hashType] = cache[hashType] || transaction.hashForSignature(vin, prevOutScript, hashType)
+      if (!keyPair2.verify(signatureHash, signature)) return false
+
+      // remove matched signature from unmatched
+      unmatched[i] = undefined
+      matched = signature
+
+      return true
+    })
+
+    return matched || undefined
+  })
+}
+
+function extractInput (transaction, txIn, vin) {
+  var redeemScript
+  var scriptSig = txIn.script
+  var scriptSigChunks = bscript.decompile(scriptSig)
+
+  var prevOutScript
+  var prevOutType = bscript.classifyInput(scriptSig, true)
+  var scriptType
+
+  // Re-classify if scriptHash
+  if (prevOutType === 'scripthash') {
+    redeemScript = scriptSigChunks.slice(-1)[0]
+    prevOutScript = bscript.scriptHashOutput(bcrypto.hash160(redeemScript))
+
+    scriptSig = bscript.compile(scriptSigChunks.slice(0, -1))
+    scriptSigChunks = scriptSigChunks.slice(0, -1)
+
+    scriptType = bscript.classifyInput(scriptSig, true)
+  } else {
+    scriptType = prevOutType
+  }
+
+  // pre-empt redeemScript decompilation
+  var redeemScriptChunks
+  if (redeemScript) {
+    redeemScriptChunks = bscript.decompile(redeemScript)
+  }
+
+  // Extract hashType, pubKeys and signatures
+  var hashType, parsed, pubKeys, signatures
+
+  switch (scriptType) {
+    case 'pubkeyhash':
+      parsed = ECSignature.parseScriptSignature(scriptSigChunks[0])
+      hashType = parsed.hashType
+      pubKeys = scriptSigChunks.slice(1)
+      signatures = [parsed.signature]
+      prevOutScript = bscript.pubKeyHashOutput(bcrypto.hash160(pubKeys[0]))
+
+      break
+
+    case 'pubkey':
+      parsed = ECSignature.parseScriptSignature(scriptSigChunks[0])
+      hashType = parsed.hashType
+      signatures = [parsed.signature]
+
+      if (redeemScript) {
+        pubKeys = redeemScriptChunks.slice(0, 1)
+      }
+
+      break
+
+    case 'multisig':
+      signatures = scriptSigChunks.slice(1).map(function (chunk) {
+        if (chunk === ops.OP_0) return undefined
+
+        var parsed = ECSignature.parseScriptSignature(chunk)
+        hashType = parsed.hashType
+
+        return parsed.signature
+      })
+
+      if (redeemScript) {
+        pubKeys = redeemScriptChunks.slice(1, -2)
+
+        if (pubKeys.length !== signatures.length) {
+          signatures = fixMSSignatures(transaction, vin, pubKeys, signatures, redeemScript, hashType, redeemScript)
+        }
+      }
+
+      break
+  }
+
+  return {
+    hashType: hashType,
+    prevOutScript: prevOutScript,
+    prevOutType: prevOutType,
+    pubKeys: pubKeys,
+    redeemScript: redeemScript,
+    scriptType: scriptType,
+    signatures: signatures
+  }
+}
+
+function TransactionBuilder (network) {
+  this.prevTxMap = {}
+  this.prevOutScripts = {}
+  this.prevOutTypes = {}
+  this.network = network || networks.bitcoin
+
+  this.inputs = []
+  this.tx = new Transaction()
+}
+
+TransactionBuilder.fromTransaction = function (transaction, network) {
+  var txb = new TransactionBuilder(network)
+
+  // Copy other transaction fields
+  txb.tx.version = transaction.version
+  txb.tx.locktime = transaction.locktime
+
+  // Extract/add inputs
+  transaction.ins.forEach(function (txIn) {
+    txb.addInput(txIn.hash, txIn.index, txIn.sequence)
+  })
+
+  // Extract/add outputs
+  transaction.outs.forEach(function (txOut) {
+    txb.addOutput(txOut.script, txOut.value)
+  })
+
+  // Extract/add signatures
+  txb.inputs = transaction.ins.map(function (txIn, vin) {
+    // TODO: verify whether extractInput is sane with coinbase scripts
+    if (Transaction.isCoinbaseHash(txIn.hash)) {
+      throw new Error('coinbase inputs not supported')
+    }
+
+    // Ignore empty scripts
+    if (txIn.script.length === 0) return {}
+
+    return extractInput(transaction, txIn, vin)
+  })
+
+  return txb
+}
+
+TransactionBuilder.prototype.addInput = function (txHash, vout, sequence, prevOutScript) {
+  // is it a hex string?
+  if (typeof txHash === 'string') {
+    // transaction hashs's are displayed in reverse order, un-reverse it
+    txHash = [].reverse.call(new Buffer(txHash, 'hex'))
+
+  // is it a Transaction object?
+  } else if (txHash instanceof Transaction) {
+    prevOutScript = txHash.outs[vout].script
+    txHash = txHash.getHash()
+  }
+
+  var input = {}
+  if (prevOutScript) {
+    var prevOutScriptChunks = bscript.decompile(prevOutScript)
+    var prevOutType = bscript.classifyOutput(prevOutScriptChunks)
+
+    // if we can, extract pubKey information
+    switch (prevOutType) {
+      case 'multisig':
+        input.pubKeys = prevOutScriptChunks.slice(1, -2)
+        input.signatures = input.pubKeys.map(function () { return undefined })
+
+        break
+
+      case 'pubkey':
+        input.pubKeys = prevOutScriptChunks.slice(0, 1)
+        input.signatures = [undefined]
+
+        break
+    }
+
+    if (prevOutType !== 'scripthash') {
+      input.scriptType = prevOutType
+    }
+
+    input.prevOutScript = prevOutScript
+    input.prevOutType = prevOutType
+  }
+
+  var valid = this.inputs.every(function (input2) {
+    if (input2.hashType === undefined) return true
+
+    return input2.hashType & Transaction.SIGHASH_ANYONECANPAY
+  })
+
+  if (!valid) throw new Error('No, this would invalidate signatures')
+
+  var prevOut = txHash.toString('hex') + ':' + vout
+  if (this.prevTxMap[prevOut]) throw new Error('Transaction is already an input')
+
+  var vin = this.tx.addInput(txHash, vout, sequence)
+  this.inputs[vin] = input
+  this.prevTxMap[prevOut] = vin
+
+  return vin
+}
+
+TransactionBuilder.prototype.addOutput = function (scriptPubKey, value) {
+  var tx = this.tx
+  var valid = this.inputs.every(function (input, index) {
+    if (input.hashType === undefined) return true
+
+    var hashType = input.hashType & 0x1f
+    return hashType === Transaction.SIGHASH_NONE ||
+           (hashType === Transaction.SIGHASH_SINGLE && index < tx.outs.length)
+  })
+
+  if (!valid) throw new Error('No, this would invalidate signatures')
+
+  // Attempt to get a script if it's a base58 address string
+  if (typeof scriptPubKey === 'string') {
+    scriptPubKey = baddress.toOutputScript(scriptPubKey, this.network)
+  }
+
+  return tx.addOutput(scriptPubKey, value)
+}
+
+TransactionBuilder.prototype.build = function () {
+  return this.__build(false)
+}
+TransactionBuilder.prototype.buildIncomplete = function () {
+  return this.__build(true)
+}
+
+var canBuildTypes = {
+  'multisig': true,
+  'pubkey': true,
+  'pubkeyhash': true
+}
+
+TransactionBuilder.prototype.__build = function (allowIncomplete) {
+  if (!allowIncomplete) {
+    if (!this.tx.ins.length) throw new Error('Transaction has no inputs')
+    if (!this.tx.outs.length) throw new Error('Transaction has no outputs')
+  }
+
+  var tx = this.tx.clone()
+
+  // Create script signatures from inputs
+  this.inputs.forEach(function (input, index) {
+    var scriptType = input.scriptType
+    var scriptSig
+
+    if (!allowIncomplete) {
+      if (!scriptType) throw new Error('Transaction is not complete')
+      if (!canBuildTypes[scriptType]) throw new Error(scriptType + ' not supported')
+
+      // XXX: only relevant to types that need signatures
+      if (!input.signatures) throw new Error('Transaction is missing signatures')
+    }
+
+    if (input.signatures) {
+      switch (scriptType) {
+        case 'pubkeyhash':
+          var pkhSignature = input.signatures[0].toScriptSignature(input.hashType)
+          scriptSig = bscript.pubKeyHashInput(pkhSignature, input.pubKeys[0])
+          break
+
+        case 'multisig':
+          var msSignatures = input.signatures.map(function (signature) {
+            return signature && signature.toScriptSignature(input.hashType)
+          })
+
+          // fill in blanks with OP_0
+          if (allowIncomplete) {
+            for (var i = 0; i < msSignatures.length; ++i) {
+              msSignatures[i] = msSignatures[i] || ops.OP_0
+            }
+
+          // remove blank signatures
+          } else {
+            msSignatures = msSignatures.filter(function (x) { return x })
+          }
+
+          var redeemScript = allowIncomplete ? undefined : input.redeemScript
+          scriptSig = bscript.multisigInput(msSignatures, redeemScript)
+          break
+
+        case 'pubkey':
+          var pkSignature = input.signatures[0].toScriptSignature(input.hashType)
+          scriptSig = bscript.pubKeyInput(pkSignature)
+          break
+      }
+    }
+
+    // did we build a scriptSig?
+    if (scriptSig) {
+      // wrap as scriptHash if necessary
+      if (input.prevOutType === 'scripthash') {
+        scriptSig = bscript.scriptHashInput(scriptSig, input.redeemScript)
+      }
+
+      tx.setInputScript(index, scriptSig)
+    }
+  })
+
+  return tx
+}
+
+TransactionBuilder.prototype.sign = function (index, keyPair, redeemScript, hashType) {
+  if (keyPair.network !== this.network) throw new Error('Inconsistent network')
+  if (!this.inputs[index]) throw new Error('No input at index: ' + index)
+  hashType = hashType || Transaction.SIGHASH_ALL
+
+  var input = this.inputs[index]
+  var canSign = input.hashType &&
+    input.prevOutScript &&
+    input.prevOutType &&
+    input.pubKeys &&
+    input.scriptType &&
+    input.signatures &&
+    input.signatures.length === input.pubKeys.length
+
+  var kpPubKey = keyPair.getPublicKeyBuffer()
+
+  // are we ready to sign?
+  if (canSign) {
+    // if redeemScript was provided, enforce consistency
+    if (redeemScript) {
+      if (!bufferEquals(input.redeemScript, redeemScript)) throw new Error('Inconsistent redeemScript')
+    }
+
+    if (input.hashType !== hashType) throw new Error('Inconsistent hashType')
+
+  // no? prepare
+  } else {
+    // must be pay-to-scriptHash?
+    if (redeemScript) {
+      // if we have a prevOutScript, enforce scriptHash equality to the redeemScript
+      if (input.prevOutScript) {
+        if (input.prevOutType !== 'scripthash') throw new Error('PrevOutScript must be P2SH')
+
+        var scriptHash = bscript.decompile(input.prevOutScript)[1]
+        if (!bufferEquals(scriptHash, bcrypto.hash160(redeemScript))) throw new Error('RedeemScript does not match ' + scriptHash.toString('hex'))
+      }
+
+      var scriptType = bscript.classifyOutput(redeemScript)
+      var redeemScriptChunks = bscript.decompile(redeemScript)
+      var pubKeys
+
+      switch (scriptType) {
+        case 'multisig':
+          pubKeys = redeemScriptChunks.slice(1, -2)
+
+          break
+
+        case 'pubkeyhash':
+          var pkh1 = redeemScriptChunks[2]
+          var pkh2 = bcrypto.hash160(keyPair.getPublicKeyBuffer())
+
+          if (!bufferEquals(pkh1, pkh2)) throw new Error('privateKey cannot sign for this input')
+          pubKeys = [kpPubKey]
+
+          break
+
+        case 'pubkey':
+          pubKeys = redeemScriptChunks.slice(0, 1)
+
+          break
+
+        default:
+          throw new Error('RedeemScript not supported (' + scriptType + ')')
+      }
+
+      // if we don't have a prevOutScript, generate a P2SH script
+      if (!input.prevOutScript) {
+        input.prevOutScript = bscript.scriptHashOutput(bcrypto.hash160(redeemScript))
+        input.prevOutType = 'scripthash'
+      }
+
+      input.pubKeys = pubKeys
+      input.redeemScript = redeemScript
+      input.scriptType = scriptType
+      input.signatures = pubKeys.map(function () { return undefined })
+    } else {
+      // pay-to-scriptHash is not possible without a redeemScript
+      if (input.prevOutType === 'scripthash') throw new Error('PrevOutScript is P2SH, missing redeemScript')
+
+      // if we don't have a scriptType, assume pubKeyHash otherwise
+      if (!input.scriptType) {
+        input.prevOutScript = bscript.pubKeyHashOutput(bcrypto.hash160(keyPair.getPublicKeyBuffer()))
+        input.prevOutType = 'pubkeyhash'
+        input.pubKeys = [kpPubKey]
+        input.scriptType = input.prevOutType
+        input.signatures = [undefined]
+      } else {
+        // throw if we can't sign with it
+        if (!input.pubKeys || !input.signatures) throw new Error(input.scriptType + ' not supported')
+      }
+    }
+
+    input.hashType = hashType
+  }
+
+  // ready to sign?
+  var signatureScript = input.redeemScript || input.prevOutScript
+  var signatureHash = this.tx.hashForSignature(index, signatureScript, hashType)
+
+  // enforce in order signing of public keys
+  var valid = input.pubKeys.some(function (pubKey, i) {
+    if (!bufferEquals(kpPubKey, pubKey)) return false
+    if (input.signatures[i]) throw new Error('Signature already exists')
+
+    var signature = keyPair.sign(signatureHash)
+    input.signatures[i] = signature
+
+    return true
+  })
+
+  if (!valid) throw new Error('Key pair cannot sign for this input')
+}
+
+module.exports = TransactionBuilder
+
+}).call(this,require("buffer").Buffer)
+},{"./address":20,"./crypto":23,"./ecpair":25,"./ecsignature":26,"./networks":30,"./opcodes":31,"./script":32,"./transaction":33,"buffer":56,"buffer-equals":8}],35:[function(require,module,exports){
+var typeforce = require('typeforce')
+
+function nBuffer (value, n) {
+  typeforce(types.Buffer, value)
+  if (value.length !== n) throw new Error('Expected ' + (n * 8) + '-bit Buffer, got ' + (value.length * 8) + '-bit Buffer')
+  return true
+}
+
+function Hash160bit (value) { return nBuffer(value, 20) }
+function Hash256bit (value) { return nBuffer(value, 32) }
+function Buffer256bit (value) { return nBuffer(value, 32) }
+
+var UINT53_MAX = Math.pow(2, 53) - 1
+function UInt2 (value) { return (value & 3) === value }
+function UInt8 (value) { return (value & 0xff) === value }
+function UInt32 (value) { return (value >>> 0) === value }
+function UInt53 (value) {
+  return typeforce.Number(value) &&
+    value >= 0 &&
+    value <= UINT53_MAX &&
+    Math.floor(value) === value
+}
+
+// external dependent types
+var BigInt = typeforce.quacksLike('BigInteger')
+var ECPoint = typeforce.quacksLike('Point')
+
+// exposed, external API
+var ECSignature = typeforce.compile({ r: BigInt, s: BigInt })
+var Network = typeforce.compile({
+  messagePrefix: typeforce.oneOf(typeforce.Buffer, typeforce.String),
+  bip32: {
+    public: UInt32,
+    private: UInt32
+  },
+  pubKeyHash: UInt8,
+  scriptHash: UInt8,
+  wif: UInt8,
+  dustThreshold: UInt53
+})
+
+// extend typeforce types with ours
+var types = {
+  BigInt: BigInt,
+  Buffer256bit: Buffer256bit,
+  ECPoint: ECPoint,
+  ECSignature: ECSignature,
+  Hash160bit: Hash160bit,
+  Hash256bit: Hash256bit,
+  Network: Network,
+  UInt2: UInt2,
+  UInt8: UInt8,
+  UInt32: UInt32,
+  UInt53: UInt53
+}
+
+for (var typeName in typeforce) {
+  types[typeName] = typeforce[typeName]
+}
+
+module.exports = types
+
+},{"typeforce":17}],36:[function(require,module,exports){
+// Base58 encoding/decoding
+// Originally written by Mike Hearn for BitcoinJ
+// Copyright (c) 2011 Google Inc
+// Ported to JavaScript by Stefan Thomas
+// Merged Buffer refactorings from base58-native by Stephen Pair
+// Copyright (c) 2013 BitPay Inc
+
+var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+var ALPHABET_MAP = {}
+for(var i = 0; i < ALPHABET.length; i++) {
+  ALPHABET_MAP[ALPHABET.charAt(i)] = i
+}
+var BASE = 58
+
+function encode(buffer) {
+  if (buffer.length === 0) return ''
+
+  var i, j, digits = [0]
+  for (i = 0; i < buffer.length; i++) {
+    for (j = 0; j < digits.length; j++) digits[j] <<= 8
+
+    digits[0] += buffer[i]
+
+    var carry = 0
+    for (j = 0; j < digits.length; ++j) {
+      digits[j] += carry
+
+      carry = (digits[j] / BASE) | 0
+      digits[j] %= BASE
+    }
+
+    while (carry) {
+      digits.push(carry % BASE)
+
+      carry = (carry / BASE) | 0
+    }
+  }
+
+  // deal with leading zeros
+  for (i = 0; buffer[i] === 0 && i < buffer.length - 1; i++) digits.push(0)
+
+  // convert digits to a string
+  var stringOutput = ""
+  for (var i = digits.length - 1; i >= 0; i--) {
+    stringOutput = stringOutput + ALPHABET[digits[i]]
+  }
+  return stringOutput
+}
+
+function decode(string) {
+  if (string.length === 0) return []
+
+  var i, j, bytes = [0]
+  for (i = 0; i < string.length; i++) {
+    var c = string[i]
+    if (!(c in ALPHABET_MAP)) throw new Error('Non-base58 character')
+
+    for (j = 0; j < bytes.length; j++) bytes[j] *= BASE
+    bytes[0] += ALPHABET_MAP[c]
+
+    var carry = 0
+    for (j = 0; j < bytes.length; ++j) {
+      bytes[j] += carry
+
+      carry = bytes[j] >> 8
+      bytes[j] &= 0xff
+    }
+
+    while (carry) {
+      bytes.push(carry & 0xff)
+
+      carry >>= 8
+    }
+  }
+
+  // deal with leading zeros
+  for (i = 0; string[i] === '1' && i < string.length - 1; i++) bytes.push(0)
+
+  return bytes.reverse()
+}
+
+module.exports = {
+  encode: encode,
+  decode: decode
+}
+
+},{}],37:[function(require,module,exports){
 (function (Buffer){
 var Transform = require('stream').Transform
 var inherits = require('inherits')
@@ -2238,6 +5449,21 @@ CipherBase.prototype.update = function (data, inputEnc, outputEnc) {
   }
   return outData
 }
+
+CipherBase.prototype.setAutoPadding = function () {}
+
+CipherBase.prototype.getAuthTag = function () {
+  throw new Error('trying to get auth tag in unsupported state')
+}
+
+CipherBase.prototype.setAuthTag = function () {
+  throw new Error('trying to set auth tag in unsupported state')
+}
+
+CipherBase.prototype.setAAD = function () {
+  throw new Error('trying to set aad in unsupported state')
+}
+
 CipherBase.prototype._transform = function (data, _, next) {
   var err
   try {
@@ -2286,32 +5512,448 @@ CipherBase.prototype._toString = function (value, enc, final) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":49,"inherits":12,"stream":71,"string_decoder":72}],12:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
+},{"buffer":56,"inherits":38,"stream":78,"string_decoder":79}],38:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],39:[function(require,module,exports){
+var assert = require('assert')
+var BigInteger = require('bigi')
+
+var Point = require('./point')
+
+function Curve(p, a, b, Gx, Gy, n, h) {
+  this.p = p
+  this.a = a
+  this.b = b
+  this.G = Point.fromAffine(this, Gx, Gy)
+  this.n = n
+  this.h = h
+
+  this.infinity = new Point(this, null, null, BigInteger.ZERO)
+
+  // result caching
+  this.pOverFour = p.add(BigInteger.ONE).shiftRight(2)
+}
+
+Curve.prototype.pointFromX = function(isOdd, x) {
+  var alpha = x.pow(3).add(this.a.multiply(x)).add(this.b).mod(this.p)
+  var beta = alpha.modPow(this.pOverFour, this.p)
+
+  var y = beta
+  if (beta.isEven() ^ !isOdd) {
+    y = this.p.subtract(y) // -y % p
+  }
+
+  return Point.fromAffine(this, x, y)
+}
+
+Curve.prototype.isInfinity = function(Q) {
+  if (Q === this.infinity) return true
+
+  return Q.z.signum() === 0 && Q.y.signum() !== 0
+}
+
+Curve.prototype.isOnCurve = function(Q) {
+  if (this.isInfinity(Q)) return true
+
+  var x = Q.affineX
+  var y = Q.affineY
+  var a = this.a
+  var b = this.b
+  var p = this.p
+
+  // Check that xQ and yQ are integers in the interval [0, p - 1]
+  if (x.signum() < 0 || x.compareTo(p) >= 0) return false
+  if (y.signum() < 0 || y.compareTo(p) >= 0) return false
+
+  // and check that y^2 = x^3 + ax + b (mod p)
+  var lhs = y.square().mod(p)
+  var rhs = x.pow(3).add(a.multiply(x)).add(b).mod(p)
+  return lhs.equals(rhs)
+}
+
+/**
+ * Validate an elliptic curve point.
+ *
+ * See SEC 1, section 3.2.2.1: Elliptic Curve Public Key Validation Primitive
+ */
+Curve.prototype.validate = function(Q) {
+  // Check Q != O
+  assert(!this.isInfinity(Q), 'Point is at infinity')
+  assert(this.isOnCurve(Q), 'Point is not on the curve')
+
+  // Check nQ = O (where Q is a scalar multiple of G)
+  var nQ = Q.multiply(this.n)
+  assert(this.isInfinity(nQ), 'Point is not a scalar multiple of G')
+
+  return true
+}
+
+module.exports = Curve
+
+},{"./point":43,"assert":54,"bigi":4}],40:[function(require,module,exports){
+module.exports={
+  "secp128r1": {
+    "p": "fffffffdffffffffffffffffffffffff",
+    "a": "fffffffdfffffffffffffffffffffffc",
+    "b": "e87579c11079f43dd824993c2cee5ed3",
+    "n": "fffffffe0000000075a30d1b9038a115",
+    "h": "01",
+    "Gx": "161ff7528b899b2d0c28607ca52c5b86",
+    "Gy": "cf5ac8395bafeb13c02da292dded7a83"
+  },
+  "secp160k1": {
+    "p": "fffffffffffffffffffffffffffffffeffffac73",
+    "a": "00",
+    "b": "07",
+    "n": "0100000000000000000001b8fa16dfab9aca16b6b3",
+    "h": "01",
+    "Gx": "3b4c382ce37aa192a4019e763036f4f5dd4d7ebb",
+    "Gy": "938cf935318fdced6bc28286531733c3f03c4fee"
+  },
+  "secp160r1": {
+    "p": "ffffffffffffffffffffffffffffffff7fffffff",
+    "a": "ffffffffffffffffffffffffffffffff7ffffffc",
+    "b": "1c97befc54bd7a8b65acf89f81d4d4adc565fa45",
+    "n": "0100000000000000000001f4c8f927aed3ca752257",
+    "h": "01",
+    "Gx": "4a96b5688ef573284664698968c38bb913cbfc82",
+    "Gy": "23a628553168947d59dcc912042351377ac5fb32"
+  },
+  "secp192k1": {
+    "p": "fffffffffffffffffffffffffffffffffffffffeffffee37",
+    "a": "00",
+    "b": "03",
+    "n": "fffffffffffffffffffffffe26f2fc170f69466a74defd8d",
+    "h": "01",
+    "Gx": "db4ff10ec057e9ae26b07d0280b7f4341da5d1b1eae06c7d",
+    "Gy": "9b2f2f6d9c5628a7844163d015be86344082aa88d95e2f9d"
+  },
+  "secp192r1": {
+    "p": "fffffffffffffffffffffffffffffffeffffffffffffffff",
+    "a": "fffffffffffffffffffffffffffffffefffffffffffffffc",
+    "b": "64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1",
+    "n": "ffffffffffffffffffffffff99def836146bc9b1b4d22831",
+    "h": "01",
+    "Gx": "188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012",
+    "Gy": "07192b95ffc8da78631011ed6b24cdd573f977a11e794811"
+  },
+  "secp256k1": {
+    "p": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
+    "a": "00",
+    "b": "07",
+    "n": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+    "h": "01",
+    "Gx": "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+    "Gy": "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+  },
+  "secp256r1": {
+    "p": "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff",
+    "a": "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
+    "b": "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b",
+    "n": "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551",
+    "h": "01",
+    "Gx": "6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296",
+    "Gy": "4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5"
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
+var Point = require('./point')
+var Curve = require('./curve')
+
+var getCurveByName = require('./names')
+
+module.exports = {
+  Curve: Curve,
+  Point: Point,
+  getCurveByName: getCurveByName
+}
+
+},{"./curve":39,"./names":42,"./point":43}],42:[function(require,module,exports){
+var BigInteger = require('bigi')
+
+var curves = require('./curves')
+var Curve = require('./curve')
+
+function getCurveByName(name) {
+  var curve = curves[name]
+  if (!curve) return null
+
+  var p = new BigInteger(curve.p, 16)
+  var a = new BigInteger(curve.a, 16)
+  var b = new BigInteger(curve.b, 16)
+  var n = new BigInteger(curve.n, 16)
+  var h = new BigInteger(curve.h, 16)
+  var Gx = new BigInteger(curve.Gx, 16)
+  var Gy = new BigInteger(curve.Gy, 16)
+
+  return new Curve(p, a, b, Gx, Gy, n, h)
+}
+
+module.exports = getCurveByName
+
+},{"./curve":39,"./curves":40,"bigi":4}],43:[function(require,module,exports){
+(function (Buffer){
+var assert = require('assert')
+var BigInteger = require('bigi')
+
+var THREE = BigInteger.valueOf(3)
+
+function Point(curve, x, y, z) {
+  assert.notStrictEqual(z, undefined, 'Missing Z coordinate')
+
+  this.curve = curve
+  this.x = x
+  this.y = y
+  this.z = z
+  this._zInv = null
+
+  this.compressed = true
+}
+
+Object.defineProperty(Point.prototype, 'zInv', {
+  get: function() {
+    if (this._zInv === null) {
+      this._zInv = this.z.modInverse(this.curve.p)
+    }
+
+    return this._zInv
+  }
+})
+
+Object.defineProperty(Point.prototype, 'affineX', {
+  get: function() {
+    return this.x.multiply(this.zInv).mod(this.curve.p)
+  }
+})
+
+Object.defineProperty(Point.prototype, 'affineY', {
+  get: function() {
+    return this.y.multiply(this.zInv).mod(this.curve.p)
+  }
+})
+
+Point.fromAffine = function(curve, x, y) {
+  return new Point(curve, x, y, BigInteger.ONE)
+}
+
+Point.prototype.equals = function(other) {
+  if (other === this) return true
+  if (this.curve.isInfinity(this)) return this.curve.isInfinity(other)
+  if (this.curve.isInfinity(other)) return this.curve.isInfinity(this)
+
+  // u = Y2 * Z1 - Y1 * Z2
+  var u = other.y.multiply(this.z).subtract(this.y.multiply(other.z)).mod(this.curve.p)
+
+  if (u.signum() !== 0) return false
+
+  // v = X2 * Z1 - X1 * Z2
+  var v = other.x.multiply(this.z).subtract(this.x.multiply(other.z)).mod(this.curve.p)
+
+  return v.signum() === 0
+}
+
+Point.prototype.negate = function() {
+  var y = this.curve.p.subtract(this.y)
+
+  return new Point(this.curve, this.x, y, this.z)
+}
+
+Point.prototype.add = function(b) {
+  if (this.curve.isInfinity(this)) return b
+  if (this.curve.isInfinity(b)) return this
+
+  var x1 = this.x
+  var y1 = this.y
+  var x2 = b.x
+  var y2 = b.y
+
+  // u = Y2 * Z1 - Y1 * Z2
+  var u = y2.multiply(this.z).subtract(y1.multiply(b.z)).mod(this.curve.p)
+  // v = X2 * Z1 - X1 * Z2
+  var v = x2.multiply(this.z).subtract(x1.multiply(b.z)).mod(this.curve.p)
+
+  if (v.signum() === 0) {
+    if (u.signum() === 0) {
+      return this.twice() // this == b, so double
+    }
+
+    return this.curve.infinity // this = -b, so infinity
+  }
+
+  var v2 = v.square()
+  var v3 = v2.multiply(v)
+  var x1v2 = x1.multiply(v2)
+  var zu2 = u.square().multiply(this.z)
+
+  // x3 = v * (z2 * (z1 * u^2 - 2 * x1 * v^2) - v^3)
+  var x3 = zu2.subtract(x1v2.shiftLeft(1)).multiply(b.z).subtract(v3).multiply(v).mod(this.curve.p)
+  // y3 = z2 * (3 * x1 * u * v^2 - y1 * v^3 - z1 * u^3) + u * v^3
+  var y3 = x1v2.multiply(THREE).multiply(u).subtract(y1.multiply(v3)).subtract(zu2.multiply(u)).multiply(b.z).add(u.multiply(v3)).mod(this.curve.p)
+  // z3 = v^3 * z1 * z2
+  var z3 = v3.multiply(this.z).multiply(b.z).mod(this.curve.p)
+
+  return new Point(this.curve, x3, y3, z3)
+}
+
+Point.prototype.twice = function() {
+  if (this.curve.isInfinity(this)) return this
+  if (this.y.signum() === 0) return this.curve.infinity
+
+  var x1 = this.x
+  var y1 = this.y
+
+  var y1z1 = y1.multiply(this.z)
+  var y1sqz1 = y1z1.multiply(y1).mod(this.curve.p)
+  var a = this.curve.a
+
+  // w = 3 * x1^2 + a * z1^2
+  var w = x1.square().multiply(THREE)
+
+  if (a.signum() !== 0) {
+    w = w.add(this.z.square().multiply(a))
+  }
+
+  w = w.mod(this.curve.p)
+  // x3 = 2 * y1 * z1 * (w^2 - 8 * x1 * y1^2 * z1)
+  var x3 = w.square().subtract(x1.shiftLeft(3).multiply(y1sqz1)).shiftLeft(1).multiply(y1z1).mod(this.curve.p)
+  // y3 = 4 * y1^2 * z1 * (3 * w * x1 - 2 * y1^2 * z1) - w^3
+  var y3 = w.multiply(THREE).multiply(x1).subtract(y1sqz1.shiftLeft(1)).shiftLeft(2).multiply(y1sqz1).subtract(w.pow(3)).mod(this.curve.p)
+  // z3 = 8 * (y1 * z1)^3
+  var z3 = y1z1.pow(3).shiftLeft(3).mod(this.curve.p)
+
+  return new Point(this.curve, x3, y3, z3)
+}
+
+// Simple NAF (Non-Adjacent Form) multiplication algorithm
+// TODO: modularize the multiplication algorithm
+Point.prototype.multiply = function(k) {
+  if (this.curve.isInfinity(this)) return this
+  if (k.signum() === 0) return this.curve.infinity
+
+  var e = k
+  var h = e.multiply(THREE)
+
+  var neg = this.negate()
+  var R = this
+
+  for (var i = h.bitLength() - 2; i > 0; --i) {
+    R = R.twice()
+
+    var hBit = h.testBit(i)
+    var eBit = e.testBit(i)
+
+    if (hBit != eBit) {
+      R = R.add(hBit ? this : neg)
+    }
+  }
+
+  return R
+}
+
+// Compute this*j + x*k (simultaneous multiplication)
+Point.prototype.multiplyTwo = function(j, x, k) {
+  var i
+
+  if (j.bitLength() > k.bitLength())
+    i = j.bitLength() - 1
+  else
+    i = k.bitLength() - 1
+
+  var R = this.curve.infinity
+  var both = this.add(x)
+
+  while (i >= 0) {
+    R = R.twice()
+
+    var jBit = j.testBit(i)
+    var kBit = k.testBit(i)
+
+    if (jBit) {
+      if (kBit) {
+        R = R.add(both)
+
+      } else {
+        R = R.add(this)
+      }
+
+    } else {
+      if (kBit) {
+        R = R.add(x)
+      }
+    }
+    --i
+  }
+
+  return R
+}
+
+Point.prototype.getEncoded = function(compressed) {
+  if (compressed == undefined) compressed = this.compressed
+  if (this.curve.isInfinity(this)) return new Buffer('00', 'hex') // Infinity point encoded is simply '00'
+
+  var x = this.affineX
+  var y = this.affineY
+
+  var buffer
+
+  // Determine size of q in bytes
+  var byteLength = Math.floor((this.curve.p.bitLength() + 7) / 8)
+
+  // 0x02/0x03 | X
+  if (compressed) {
+    buffer = new Buffer(1 + byteLength)
+    buffer.writeUInt8(y.isEven() ? 0x02 : 0x03, 0)
+
+  // 0x04 | X | Y
+  } else {
+    buffer = new Buffer(1 + byteLength + byteLength)
+    buffer.writeUInt8(0x04, 0)
+
+    y.toBuffer(byteLength).copy(buffer, 1 + byteLength)
+  }
+
+  x.toBuffer(byteLength).copy(buffer, 1)
+
+  return buffer
+}
+
+Point.decodeFrom = function(curve, buffer) {
+  var type = buffer.readUInt8(0)
+  var compressed = (type !== 4)
+
+  var x = BigInteger.fromBuffer(buffer.slice(1, 33))
+  var byteLength = Math.floor((curve.p.bitLength() + 7) / 8)
+
+  var Q
+  if (compressed) {
+    assert.equal(buffer.length, byteLength + 1, 'Invalid sequence length')
+    assert(type === 0x02 || type === 0x03, 'Invalid sequence tag')
+
+    var isOdd = (type === 0x03)
+    Q = curve.pointFromX(isOdd, x)
+
+  } else {
+    assert.equal(buffer.length, 1 + byteLength + byteLength, 'Invalid sequence length')
+
+    var y = BigInteger.fromBuffer(buffer.slice(1 + byteLength))
+    Q = Point.fromAffine(curve, x, y)
+  }
+
+  Q.compressed = compressed
+  return Q
+}
+
+Point.prototype.toString = function () {
+  if (this.curve.isInfinity(this)) return '(INFINITY)'
+
+  return '(' + this.affineX.toString() + ',' + this.affineY.toString() + ')'
+}
+
+module.exports = Point
+
+}).call(this,require("buffer").Buffer)
+},{"assert":54,"bigi":4,"buffer":56}],44:[function(require,module,exports){
 (function (Buffer){
 /*
 CryptoJS v3.1.2
@@ -2525,7 +6167,7 @@ function ripemd160 (message) {
 module.exports = ripemd160
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":49}],14:[function(require,module,exports){
+},{"buffer":56}],45:[function(require,module,exports){
 (function (Buffer){
 // prototype class for hash functions
 function Hash (blockSize, finalSize) {
@@ -2598,7 +6240,7 @@ Hash.prototype._update = function () {
 module.exports = Hash
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":49}],15:[function(require,module,exports){
+},{"buffer":56}],46:[function(require,module,exports){
 var exports = module.exports = function SHA (algorithm) {
   algorithm = algorithm.toLowerCase()
 
@@ -2615,7 +6257,9 @@ exports.sha256 = require('./sha256')
 exports.sha384 = require('./sha384')
 exports.sha512 = require('./sha512')
 
-},{"./sha":16,"./sha1":17,"./sha224":18,"./sha256":19,"./sha384":20,"./sha512":21}],16:[function(require,module,exports){
+},{"./sha":48,"./sha1":49,"./sha224":50,"./sha256":51,"./sha384":52,"./sha512":53}],47:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],48:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-0, as defined
@@ -2719,7 +6363,7 @@ module.exports = Sha
 
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":14,"buffer":49,"inherits":12}],17:[function(require,module,exports){
+},{"./hash":45,"buffer":56,"inherits":47}],49:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -2819,7 +6463,7 @@ Sha1.prototype._hash = function () {
 module.exports = Sha1
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":14,"buffer":49,"inherits":12}],18:[function(require,module,exports){
+},{"./hash":45,"buffer":56,"inherits":47}],50:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -2875,7 +6519,7 @@ Sha224.prototype._hash = function () {
 module.exports = Sha224
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":14,"./sha256":19,"buffer":49,"inherits":12}],19:[function(require,module,exports){
+},{"./hash":45,"./sha256":51,"buffer":56,"inherits":47}],51:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -3020,7 +6664,7 @@ Sha256.prototype._hash = function () {
 module.exports = Sha256
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":14,"buffer":49,"inherits":12}],20:[function(require,module,exports){
+},{"./hash":45,"buffer":56,"inherits":47}],52:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var SHA512 = require('./sha512')
@@ -3080,7 +6724,7 @@ Sha384.prototype._hash = function () {
 module.exports = Sha384
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":14,"./sha512":21,"buffer":49,"inherits":12}],21:[function(require,module,exports){
+},{"./hash":45,"./sha512":53,"buffer":56,"inherits":47}],53:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var Hash = require('./hash')
@@ -3350,3544 +6994,7 @@ Sha512.prototype._hash = function () {
 module.exports = Sha512
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":14,"buffer":49,"inherits":12}],22:[function(require,module,exports){
-(function (Buffer){
-'use strict';
-var createHash = require('create-hash/browser');
-var inherits = require('inherits')
-
-var Transform = require('stream').Transform
-
-var ZEROS = new Buffer(128)
-ZEROS.fill(0)
-
-function Hmac(alg, key) {
-  Transform.call(this)
-  alg = alg.toLowerCase()
-  if (typeof key === 'string') {
-    key = new Buffer(key)
-  }
-
-  var blocksize = (alg === 'sha512' || alg === 'sha384') ? 128 : 64
-
-  this._alg = alg
-  this._key = key
-
-  if (key.length > blocksize) {
-    key = createHash(alg).update(key).digest()
-
-  } else if (key.length < blocksize) {
-    key = Buffer.concat([key, ZEROS], blocksize)
-  }
-
-  var ipad = this._ipad = new Buffer(blocksize)
-  var opad = this._opad = new Buffer(blocksize)
-
-  for (var i = 0; i < blocksize; i++) {
-    ipad[i] = key[i] ^ 0x36
-    opad[i] = key[i] ^ 0x5C
-  }
-
-  this._hash = createHash(alg).update(ipad)
-}
-
-inherits(Hmac, Transform)
-
-Hmac.prototype.update = function (data, enc) {
-  this._hash.update(data, enc)
-
-  return this
-}
-
-Hmac.prototype._transform = function (data, _, next) {
-  this._hash.update(data)
-
-  next()
-}
-
-Hmac.prototype._flush = function (next) {
-  this.push(this.digest())
-
-  next()
-}
-
-Hmac.prototype.digest = function (enc) {
-  var h = this._hash.digest()
-
-  return createHash(this._alg).update(this._opad).update(h).digest(enc)
-}
-
-module.exports = function createHmac(alg, key) {
-  return new Hmac(alg, key)
-}
-
-}).call(this,require("buffer").Buffer)
-},{"buffer":49,"create-hash/browser":8,"inherits":23,"stream":71}],23:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],24:[function(require,module,exports){
-var assert = require('assert')
-var BigInteger = require('bigi')
-
-var Point = require('./point')
-
-function Curve(p, a, b, Gx, Gy, n, h) {
-  this.p = p
-  this.a = a
-  this.b = b
-  this.G = Point.fromAffine(this, Gx, Gy)
-  this.n = n
-  this.h = h
-
-  this.infinity = new Point(this, null, null, BigInteger.ZERO)
-
-  // result caching
-  this.pOverFour = p.add(BigInteger.ONE).shiftRight(2)
-}
-
-Curve.prototype.pointFromX = function(isOdd, x) {
-  var alpha = x.pow(3).add(this.a.multiply(x)).add(this.b).mod(this.p)
-  var beta = alpha.modPow(this.pOverFour, this.p) // XXX: not compatible with all curves
-
-  var y = beta
-  if (beta.isEven() ^ !isOdd) {
-    y = this.p.subtract(y) // -y % p
-  }
-
-  return Point.fromAffine(this, x, y)
-}
-
-Curve.prototype.isInfinity = function(Q) {
-  if (Q === this.infinity) return true
-
-  return Q.z.signum() === 0 && Q.y.signum() !== 0
-}
-
-Curve.prototype.isOnCurve = function(Q) {
-  if (this.isInfinity(Q)) return true
-
-  var x = Q.affineX
-  var y = Q.affineY
-  var a = this.a
-  var b = this.b
-  var p = this.p
-
-  // Check that xQ and yQ are integers in the interval [0, p - 1]
-  if (x.signum() < 0 || x.compareTo(p) >= 0) return false
-  if (y.signum() < 0 || y.compareTo(p) >= 0) return false
-
-  // and check that y^2 = x^3 + ax + b (mod p)
-  var lhs = y.square().mod(p)
-  var rhs = x.pow(3).add(a.multiply(x)).add(b).mod(p)
-  return lhs.equals(rhs)
-}
-
-/**
- * Validate an elliptic curve point.
- *
- * See SEC 1, section 3.2.2.1: Elliptic Curve Public Key Validation Primitive
- */
-Curve.prototype.validate = function(Q) {
-  // Check Q != O
-  assert(!this.isInfinity(Q), 'Point is at infinity')
-  assert(this.isOnCurve(Q), 'Point is not on the curve')
-
-  // Check nQ = O (where Q is a scalar multiple of G)
-  var nQ = Q.multiply(this.n)
-  assert(this.isInfinity(nQ), 'Point is not a scalar multiple of G')
-
-  return true
-}
-
-module.exports = Curve
-
-},{"./point":28,"assert":47,"bigi":3}],25:[function(require,module,exports){
-module.exports={
-  "secp128r1": {
-    "p": "fffffffdffffffffffffffffffffffff",
-    "a": "fffffffdfffffffffffffffffffffffc",
-    "b": "e87579c11079f43dd824993c2cee5ed3",
-    "n": "fffffffe0000000075a30d1b9038a115",
-    "h": "01",
-    "Gx": "161ff7528b899b2d0c28607ca52c5b86",
-    "Gy": "cf5ac8395bafeb13c02da292dded7a83"
-  },
-  "secp160k1": {
-    "p": "fffffffffffffffffffffffffffffffeffffac73",
-    "a": "00",
-    "b": "07",
-    "n": "0100000000000000000001b8fa16dfab9aca16b6b3",
-    "h": "01",
-    "Gx": "3b4c382ce37aa192a4019e763036f4f5dd4d7ebb",
-    "Gy": "938cf935318fdced6bc28286531733c3f03c4fee"
-  },
-  "secp160r1": {
-    "p": "ffffffffffffffffffffffffffffffff7fffffff",
-    "a": "ffffffffffffffffffffffffffffffff7ffffffc",
-    "b": "1c97befc54bd7a8b65acf89f81d4d4adc565fa45",
-    "n": "0100000000000000000001f4c8f927aed3ca752257",
-    "h": "01",
-    "Gx": "4a96b5688ef573284664698968c38bb913cbfc82",
-    "Gy": "23a628553168947d59dcc912042351377ac5fb32"
-  },
-  "secp192k1": {
-    "p": "fffffffffffffffffffffffffffffffffffffffeffffee37",
-    "a": "00",
-    "b": "03",
-    "n": "fffffffffffffffffffffffe26f2fc170f69466a74defd8d",
-    "h": "01",
-    "Gx": "db4ff10ec057e9ae26b07d0280b7f4341da5d1b1eae06c7d",
-    "Gy": "9b2f2f6d9c5628a7844163d015be86344082aa88d95e2f9d"
-  },
-  "secp192r1": {
-    "p": "fffffffffffffffffffffffffffffffeffffffffffffffff",
-    "a": "fffffffffffffffffffffffffffffffefffffffffffffffc",
-    "b": "64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1",
-    "n": "ffffffffffffffffffffffff99def836146bc9b1b4d22831",
-    "h": "01",
-    "Gx": "188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012",
-    "Gy": "07192b95ffc8da78631011ed6b24cdd573f977a11e794811"
-  },
-  "secp256k1": {
-    "p": "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
-    "a": "00",
-    "b": "07",
-    "n": "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
-    "h": "01",
-    "Gx": "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-    "Gy": "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
-  },
-  "secp256r1": {
-    "p": "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff",
-    "a": "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc",
-    "b": "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b",
-    "n": "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551",
-    "h": "01",
-    "Gx": "6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296",
-    "Gy": "4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5"
-  }
-}
-
-},{}],26:[function(require,module,exports){
-var Point = require('./point')
-var Curve = require('./curve')
-
-var getCurveByName = require('./names')
-
-module.exports = {
-  Curve: Curve,
-  Point: Point,
-  getCurveByName: getCurveByName
-}
-
-},{"./curve":24,"./names":27,"./point":28}],27:[function(require,module,exports){
-var BigInteger = require('bigi')
-
-var curves = require('./curves')
-var Curve = require('./curve')
-
-function getCurveByName(name) {
-  var curve = curves[name]
-  if (!curve) return null
-
-  var p = new BigInteger(curve.p, 16)
-  var a = new BigInteger(curve.a, 16)
-  var b = new BigInteger(curve.b, 16)
-  var n = new BigInteger(curve.n, 16)
-  var h = new BigInteger(curve.h, 16)
-  var Gx = new BigInteger(curve.Gx, 16)
-  var Gy = new BigInteger(curve.Gy, 16)
-
-  return new Curve(p, a, b, Gx, Gy, n, h)
-}
-
-module.exports = getCurveByName
-
-},{"./curve":24,"./curves":25,"bigi":3}],28:[function(require,module,exports){
-(function (Buffer){
-var assert = require('assert')
-var BigInteger = require('bigi')
-
-var THREE = BigInteger.valueOf(3)
-
-function Point(curve, x, y, z) {
-  assert.notStrictEqual(z, undefined, 'Missing Z coordinate')
-
-  this.curve = curve
-  this.x = x
-  this.y = y
-  this.z = z
-  this._zInv = null
-
-  this.compressed = true
-}
-
-Object.defineProperty(Point.prototype, 'zInv', {
-  get: function() {
-    if (this._zInv === null) {
-      this._zInv = this.z.modInverse(this.curve.p)
-    }
-
-    return this._zInv
-  }
-})
-
-Object.defineProperty(Point.prototype, 'affineX', {
-  get: function() {
-    return this.x.multiply(this.zInv).mod(this.curve.p)
-  }
-})
-
-Object.defineProperty(Point.prototype, 'affineY', {
-  get: function() {
-    return this.y.multiply(this.zInv).mod(this.curve.p)
-  }
-})
-
-Point.fromAffine = function(curve, x, y) {
-  return new Point(curve, x, y, BigInteger.ONE)
-}
-
-Point.prototype.equals = function(other) {
-  if (other === this) return true
-  if (this.curve.isInfinity(this)) return this.curve.isInfinity(other)
-  if (this.curve.isInfinity(other)) return this.curve.isInfinity(this)
-
-  // u = Y2 * Z1 - Y1 * Z2
-  var u = other.y.multiply(this.z).subtract(this.y.multiply(other.z)).mod(this.curve.p)
-
-  if (u.signum() !== 0) return false
-
-  // v = X2 * Z1 - X1 * Z2
-  var v = other.x.multiply(this.z).subtract(this.x.multiply(other.z)).mod(this.curve.p)
-
-  return v.signum() === 0
-}
-
-Point.prototype.negate = function() {
-  var y = this.curve.p.subtract(this.y)
-
-  return new Point(this.curve, this.x, y, this.z)
-}
-
-Point.prototype.add = function(b) {
-  if (this.curve.isInfinity(this)) return b
-  if (this.curve.isInfinity(b)) return this
-
-  var x1 = this.x
-  var y1 = this.y
-  var x2 = b.x
-  var y2 = b.y
-
-  // u = Y2 * Z1 - Y1 * Z2
-  var u = y2.multiply(this.z).subtract(y1.multiply(b.z)).mod(this.curve.p)
-  // v = X2 * Z1 - X1 * Z2
-  var v = x2.multiply(this.z).subtract(x1.multiply(b.z)).mod(this.curve.p)
-
-  if (v.signum() === 0) {
-    if (u.signum() === 0) {
-      return this.twice() // this == b, so double
-    }
-
-    return this.curve.infinity // this = -b, so infinity
-  }
-
-  var v2 = v.square()
-  var v3 = v2.multiply(v)
-  var x1v2 = x1.multiply(v2)
-  var zu2 = u.square().multiply(this.z)
-
-  // x3 = v * (z2 * (z1 * u^2 - 2 * x1 * v^2) - v^3)
-  var x3 = zu2.subtract(x1v2.shiftLeft(1)).multiply(b.z).subtract(v3).multiply(v).mod(this.curve.p)
-  // y3 = z2 * (3 * x1 * u * v^2 - y1 * v^3 - z1 * u^3) + u * v^3
-  var y3 = x1v2.multiply(THREE).multiply(u).subtract(y1.multiply(v3)).subtract(zu2.multiply(u)).multiply(b.z).add(u.multiply(v3)).mod(this.curve.p)
-  // z3 = v^3 * z1 * z2
-  var z3 = v3.multiply(this.z).multiply(b.z).mod(this.curve.p)
-
-  return new Point(this.curve, x3, y3, z3)
-}
-
-Point.prototype.twice = function() {
-  if (this.curve.isInfinity(this)) return this
-  if (this.y.signum() === 0) return this.curve.infinity
-
-  var x1 = this.x
-  var y1 = this.y
-
-  var y1z1 = y1.multiply(this.z)
-  var y1sqz1 = y1z1.multiply(y1).mod(this.curve.p)
-  var a = this.curve.a
-
-  // w = 3 * x1^2 + a * z1^2
-  var w = x1.square().multiply(THREE)
-
-  if (a.signum() !== 0) {
-    w = w.add(this.z.square().multiply(a))
-  }
-
-  w = w.mod(this.curve.p)
-  // x3 = 2 * y1 * z1 * (w^2 - 8 * x1 * y1^2 * z1)
-  var x3 = w.square().subtract(x1.shiftLeft(3).multiply(y1sqz1)).shiftLeft(1).multiply(y1z1).mod(this.curve.p)
-  // y3 = 4 * y1^2 * z1 * (3 * w * x1 - 2 * y1^2 * z1) - w^3
-  var y3 = w.multiply(THREE).multiply(x1).subtract(y1sqz1.shiftLeft(1)).shiftLeft(2).multiply(y1sqz1).subtract(w.pow(3)).mod(this.curve.p)
-  // z3 = 8 * (y1 * z1)^3
-  var z3 = y1z1.pow(3).shiftLeft(3).mod(this.curve.p)
-
-  return new Point(this.curve, x3, y3, z3)
-}
-
-// Simple NAF (Non-Adjacent Form) multiplication algorithm
-// TODO: modularize the multiplication algorithm
-Point.prototype.multiply = function(k) {
-  if (this.curve.isInfinity(this)) return this
-  if (k.signum() === 0) return this.curve.infinity
-
-  var e = k
-  var h = e.multiply(THREE)
-
-  var neg = this.negate()
-  var R = this
-
-  for (var i = h.bitLength() - 2; i > 0; --i) {
-    var hBit = h.testBit(i)
-    var eBit = e.testBit(i)
-
-    R = R.twice()
-
-    if (hBit !== eBit) {
-      R = R.add(hBit ? this : neg)
-    }
-  }
-
-  return R
-}
-
-// Compute this*j + x*k (simultaneous multiplication)
-Point.prototype.multiplyTwo = function(j, x, k) {
-  var i = Math.max(j.bitLength(), k.bitLength()) - 1
-  var R = this.curve.infinity
-  var both = this.add(x)
-
-  while (i >= 0) {
-    var jBit = j.testBit(i)
-    var kBit = k.testBit(i)
-
-    R = R.twice()
-
-    if (jBit) {
-      if (kBit) {
-        R = R.add(both)
-
-      } else {
-        R = R.add(this)
-      }
-
-    } else if (kBit) {
-      R = R.add(x)
-    }
-    --i
-  }
-
-  return R
-}
-
-Point.prototype.getEncoded = function(compressed) {
-  if (compressed == undefined) compressed = this.compressed
-  if (this.curve.isInfinity(this)) return new Buffer('00', 'hex') // Infinity point encoded is simply '00'
-
-  var x = this.affineX
-  var y = this.affineY
-
-  var buffer
-
-  // Determine size of q in bytes
-  var byteLength = Math.floor((this.curve.p.bitLength() + 7) / 8)
-
-  // 0x02/0x03 | X
-  if (compressed) {
-    buffer = new Buffer(1 + byteLength)
-    buffer.writeUInt8(y.isEven() ? 0x02 : 0x03, 0)
-
-  // 0x04 | X | Y
-  } else {
-    buffer = new Buffer(1 + byteLength + byteLength)
-    buffer.writeUInt8(0x04, 0)
-
-    y.toBuffer(byteLength).copy(buffer, 1 + byteLength)
-  }
-
-  x.toBuffer(byteLength).copy(buffer, 1)
-
-  return buffer
-}
-
-Point.decodeFrom = function(curve, buffer) {
-  var type = buffer.readUInt8(0)
-  var compressed = (type !== 4)
-
-  var byteLength = Math.floor((curve.p.bitLength() + 7) / 8)
-  var x = BigInteger.fromBuffer(buffer.slice(1, 1 + byteLength))
-
-  var Q
-  if (compressed) {
-    assert.equal(buffer.length, byteLength + 1, 'Invalid sequence length')
-    assert(type === 0x02 || type === 0x03, 'Invalid sequence tag')
-
-    var isOdd = (type === 0x03)
-    Q = curve.pointFromX(isOdd, x)
-
-  } else {
-    assert.equal(buffer.length, 1 + byteLength + byteLength, 'Invalid sequence length')
-
-    var y = BigInteger.fromBuffer(buffer.slice(1 + byteLength))
-    Q = Point.fromAffine(curve, x, y)
-  }
-
-  Q.compressed = compressed
-  return Q
-}
-
-Point.prototype.toString = function () {
-  if (this.curve.isInfinity(this)) return '(INFINITY)'
-
-  return '(' + this.affineX.toString() + ',' + this.affineY.toString() + ')'
-}
-
-module.exports = Point
-
-}).call(this,require("buffer").Buffer)
-},{"assert":47,"bigi":3,"buffer":49}],29:[function(require,module,exports){
-(function (process,global,Buffer){
-'use strict';
-
-var crypto = global.crypto || global.msCrypto
-if(crypto && crypto.getRandomValues) {
-  module.exports = randomBytes;
-} else {
-  module.exports = oldBrowser;
-}
-function randomBytes(size, cb) {
-  var bytes = new Buffer(size); //in browserify, this is an extended Uint8Array
-    /* This will not work in older browsers.
-     * See https://developer.mozilla.org/en-US/docs/Web/API/window.crypto.getRandomValues
-     */
-
-  crypto.getRandomValues(bytes);
-  if (typeof cb === 'function') {
-    return process.nextTick(function () {
-      cb(null, bytes);
-    });
-  }
-  return bytes;
-}
-function oldBrowser() {
-  throw new Error(
-      'secure random number generation not supported by this browser\n'+
-      'use chrome, FireFox or Internet Explorer 11'
-    )
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":57,"buffer":49}],30:[function(require,module,exports){
-(function (Buffer){
-'use strict';
-
-function getFunctionName(fn) {
-  return fn.name || fn.toString().match(/function (.*?)\s*\(/)[1];
-}
-
-function getValueTypeName(value) {
-  if (nativeTypes.Null(value)) return '';
-
-  return getFunctionName(value.constructor);
-}
-
-function getValue(value) {
-  if (nativeTypes.Function(value)) return '';
-  if (nativeTypes.String(value)) return JSON.stringify(value);
-  if (value && nativeTypes.Object(value)) return '';
-
-  return value;
-}
-
-function tfJSON(type) {
-  if (nativeTypes.Function(type)) return type.toJSON ? type.toJSON() : getFunctionName(type);
-  if (nativeTypes.Array(type)) return 'Array';
-  if (type && nativeTypes.Object(type)) return 'Object';
-
-  return type || '';
-}
-
-function stfJSON(type) {
-  type = tfJSON(type);
-
-  return nativeTypes.Object(type) ? JSON.stringify(type) : type;
-}
-
-function tfErrorString(type, value) {
-  var valueTypeName = getValueTypeName(value);
-  var valueValue = getValue(value);
-
-  return 'Expected ' + stfJSON(type) + ', got' + (valueTypeName !== '' ? ' ' + valueTypeName : '') + (valueValue !== '' ? ' ' + valueValue : '');
-}
-
-function tfPropertyErrorString(type, name, value) {
-  return tfErrorString('property \"' + name + '\" of type ' + stfJSON(type), value);
-}
-
-var nativeTypes = {
-  Array: (function (_Array) {
-    function Array(_x) {
-      return _Array.apply(this, arguments);
-    }
-
-    Array.toString = function () {
-      return _Array.toString();
-    };
-
-    return Array;
-  })(function (value) {
-    return value !== null && value !== undefined && value.constructor === Array;
-  }),
-  Boolean: function Boolean(value) {
-    return typeof value === 'boolean';
-  },
-  Buffer: (function (_Buffer) {
-    function Buffer(_x2) {
-      return _Buffer.apply(this, arguments);
-    }
-
-    Buffer.toString = function () {
-      return _Buffer.toString();
-    };
-
-    return Buffer;
-  })(function (value) {
-    return Buffer.isBuffer(value);
-  }),
-  Function: function Function(value) {
-    return typeof value === 'function';
-  },
-  Null: function Null(value) {
-    return value === undefined || value === null;
-  },
-  Number: function Number(value) {
-    return typeof value === 'number';
-  },
-  Object: function Object(value) {
-    return typeof value === 'object';
-  },
-  String: function String(value) {
-    return typeof value === 'string';
-  },
-  '': function _() {
-    return true;
-  }
-};
-
-var otherTypes = {
-  arrayOf: function arrayOf(type) {
-    function arrayOf(value, strict) {
-      try {
-        return nativeTypes.Array(value) && value.every(function (x) {
-          return typeforce(type, x, strict);
-        });
-      } catch (e) {
-        return false;
-      }
-    }
-    arrayOf.toJSON = function () {
-      return [tfJSON(type)];
-    };
-
-    return arrayOf;
-  },
-
-  maybe: function maybe(type) {
-    function maybe(value, strict) {
-      return nativeTypes.Null(value) || typeforce(type, value, strict);
-    }
-    maybe.toJSON = function () {
-      return '?' + stfJSON(type);
-    };
-
-    return maybe;
-  },
-
-  object: function object(type) {
-    function object(value, strict) {
-      typeforce(nativeTypes.Object, value, strict);
-
-      var propertyName, propertyType, propertyValue;
-
-      try {
-        for (propertyName in type) {
-          propertyType = type[propertyName];
-          propertyValue = value[propertyName];
-
-          typeforce(propertyType, propertyValue, strict);
-        }
-      } catch (e) {
-        if (/Expected property "/.test(e.message)) {
-          e.message = e.message.replace(/Expected property "(.+)" of/, 'Expected property "' + propertyName + '.$1" of');
-          throw e;
-        }
-
-        throw new TypeError(tfPropertyErrorString(propertyType, propertyName, propertyValue));
-      }
-
-      if (strict) {
-        for (propertyName in value) {
-          if (type[propertyName]) continue;
-
-          throw new TypeError('Unexpected property "' + propertyName + '"');
-        }
-      }
-
-      return true;
-    }
-    object.toJSON = function () {
-      return tfJSON(type);
-    };
-
-    return object;
-  },
-
-  oneOf: function oneOf() {
-    for (var _len = arguments.length, types = Array(_len), _key = 0; _key < _len; _key++) {
-      types[_key] = arguments[_key];
-    }
-
-    function oneOf(value, strict) {
-      return types.some(function (type) {
-        try {
-          return typeforce(type, value, strict);
-        } catch (e) {
-          return false;
-        }
-      });
-    }
-    oneOf.toJSON = function () {
-      return types.map(stfJSON).join('|');
-    };
-
-    return oneOf;
-  },
-
-  quacksLike: function quacksLike(type) {
-    function quacksLike(value, strict) {
-      return type === getValueTypeName(value);
-    }
-    quacksLike.toJSON = function () {
-      return type;
-    };
-
-    return quacksLike;
-  },
-
-  tuple: function tuple() {
-    for (var _len2 = arguments.length, types = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      types[_key2] = arguments[_key2];
-    }
-
-    function tuple(value, strict) {
-      return types.every(function (type, i) {
-        return typeforce(type, value[i], strict);
-      });
-    }
-    tuple.toJSON = function () {
-      return '(' + types.map(stfJSON).join(', ') + ')';
-    };
-
-    return tuple;
-  },
-
-  value: function value(expected) {
-    function value(actual) {
-      return actual === expected;
-    }
-    value.toJSON = function () {
-      return expected;
-    };
-
-    return value;
-  }
-};
-
-function compile(type) {
-  if (nativeTypes.String(type)) {
-    if (type[0] === '?') return otherTypes.maybe(compile(type.slice(1)));
-
-    return nativeTypes[type] || otherTypes.quacksLike(type);
-  } else if (type && nativeTypes.Object(type)) {
-    if (nativeTypes.Array(type)) return otherTypes.arrayOf(compile(type[0]));
-
-    var compiled = {};
-
-    for (var propertyName in type) {
-      compiled[propertyName] = compile(type[propertyName]);
-    }
-
-    return otherTypes.object(compiled);
-  } else if (nativeTypes.Function(type)) {
-    return type;
-  }
-
-  return otherTypes.value(type);
-}
-
-function typeforce(_x3, _x4, _x5) {
-  var _again = true;
-
-  _function: while (_again) {
-    var type = _x3,
-        value = _x4,
-        strict = _x5;
-    _again = false;
-
-    if (nativeTypes.Function(type)) {
-      if (type(value, strict)) return true;
-
-      throw new TypeError(tfErrorString(type, value));
-    }
-
-    // JIT
-    _x3 = compile(type);
-    _x4 = value;
-    _x5 = strict;
-    _again = true;
-    continue _function;
-  }
-}
-
-// assign all types to typeforce function
-var typeName;
-Object.keys(nativeTypes).forEach(function (typeName) {
-  var nativeType = nativeTypes[typeName];
-  nativeType.toJSON = function () {
-    return typeName;
-  };
-
-  typeforce[typeName] = nativeType;
-});
-
-for (typeName in otherTypes) {
-  typeforce[typeName] = otherTypes[typeName];
-}
-
-module.exports = typeforce;
-module.exports.compile = compile;
-}).call(this,{"isBuffer":require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":55}],31:[function(require,module,exports){
-(function (Buffer){
-var bs58check = require('bs58check')
-
-function decodeRaw (version, buffer) {
-  if (buffer[0] !== version) throw new Error('Invalid network version')
-
-  // compression flag?
-  if (buffer.length === 34) {
-    if (buffer[33] !== 0x01) throw new Error('Invalid compression flag')
-
-    // truncate the version byte/compression flag
-    return {
-      version: buffer[0],
-      d: buffer.slice(1, -1),
-      compressed: true
-    }
-  }
-
-  // no compression flag
-  if (buffer.length !== 33) throw new Error('Invalid WIF length')
-
-  return {
-    version: buffer[0],
-    d: buffer.slice(1),
-    compressed: false
-  }
-}
-
-function decode (version, string) {
-  return decodeRaw(version, bs58check.decode(string))
-}
-
-function encodeRaw (version, d, compressed) {
-  var buffer = new Buffer(compressed ? 34 : 33)
-
-  buffer.writeUInt8(version, 0)
-  d.copy(buffer, 1)
-
-  if (compressed) {
-    buffer[33] = 0x01
-  }
-
-  return buffer
-}
-
-function encode (version, d, compressed) {
-  return bs58check.encode(encodeRaw(version, d, compressed))
-}
-
-module.exports = {
-  decode: decode,
-  decodeRaw: decodeRaw,
-  encode: encode,
-  encodeRaw: encodeRaw
-}
-
-}).call(this,require("buffer").Buffer)
-},{"bs58check":6,"buffer":49}],32:[function(require,module,exports){
-(function (Buffer){
-var bs58check = require('bs58check')
-var bscript = require('./script')
-var networks = require('./networks')
-var typeforce = require('typeforce')
-var types = require('./types')
-
-function fromBase58Check (address) {
-  var payload = bs58check.decode(address)
-  if (payload.length < 21) throw new TypeError(address + ' is too short')
-  if (payload.length > 21) throw new TypeError(address + ' is too long')
-
-  var version = payload[0]
-  var hash = payload.slice(1)
-
-  return { hash: hash, version: version }
-}
-
-function fromOutputScript (scriptPubKey, network) {
-  network = network || networks.bitcoin
-
-  var chunks = bscript.decompile(scriptPubKey)
-  if (bscript.isPubKeyHashOutput(chunks)) return toBase58Check(chunks[2], network.pubKeyHash)
-  if (bscript.isScriptHashOutput(chunks)) return toBase58Check(chunks[1], network.scriptHash)
-
-  throw new Error(bscript.toASM(chunks) + ' has no matching Address')
-}
-
-function toBase58Check (hash, version) {
-  typeforce(types.tuple(types.Hash160bit, types.UInt8), arguments)
-
-  var payload = new Buffer(21)
-  payload.writeUInt8(version, 0)
-  hash.copy(payload, 1)
-
-  return bs58check.encode(payload)
-}
-
-function toOutputScript (address, network) {
-  network = network || networks.bitcoin
-
-  var decode = fromBase58Check(address)
-  if (decode.version === network.pubKeyHash) return bscript.pubKeyHashOutput(decode.hash)
-  if (decode.version === network.scriptHash) return bscript.scriptHashOutput(decode.hash)
-
-  throw new Error(address + ' has no matching Script')
-}
-
-module.exports = {
-  fromBase58Check: fromBase58Check,
-  fromOutputScript: fromOutputScript,
-  toBase58Check: toBase58Check,
-  toOutputScript: toOutputScript
-}
-
-}).call(this,require("buffer").Buffer)
-},{"./networks":41,"./script":43,"./types":46,"bs58check":6,"buffer":49,"typeforce":30}],33:[function(require,module,exports){
-(function (Buffer){
-var bufferutils = require('./bufferutils')
-var bcrypto = require('./crypto')
-
-var Transaction = require('./transaction')
-
-function Block () {
-  this.version = 1
-  this.prevHash = null
-  this.merkleRoot = null
-  this.timestamp = 0
-  this.bits = 0
-  this.nonce = 0
-}
-
-Block.fromBuffer = function (buffer) {
-  if (buffer.length < 80) throw new Error('Buffer too small (< 80 bytes)')
-
-  var offset = 0
-  function readSlice (n) {
-    offset += n
-    return buffer.slice(offset - n, offset)
-  }
-
-  function readUInt32 () {
-    var i = buffer.readUInt32LE(offset)
-    offset += 4
-    return i
-  }
-
-  var block = new Block()
-  block.version = readUInt32()
-  block.prevHash = readSlice(32)
-  block.merkleRoot = readSlice(32)
-  block.timestamp = readUInt32()
-  block.bits = readUInt32()
-  block.nonce = readUInt32()
-
-  if (buffer.length === 80) return block
-
-  function readVarInt () {
-    var vi = bufferutils.readVarInt(buffer, offset)
-    offset += vi.size
-    return vi.number
-  }
-
-  function readTransaction () {
-    var tx = Transaction.fromBuffer(buffer.slice(offset), true)
-
-    offset += tx.byteLength()
-    return tx
-  }
-
-  var nTransactions = readVarInt()
-  block.transactions = []
-
-  for (var i = 0; i < nTransactions; ++i) {
-    var tx = readTransaction()
-    block.transactions.push(tx)
-  }
-
-  return block
-}
-
-Block.fromHex = function (hex) {
-  return Block.fromBuffer(new Buffer(hex, 'hex'))
-}
-
-Block.prototype.getHash = function () {
-  return bcrypto.hash256(this.toBuffer(true))
-}
-
-Block.prototype.getId = function () {
-  return bufferutils.reverse(this.getHash()).toString('hex')
-}
-
-Block.prototype.getUTCDate = function () {
-  var date = new Date(0) // epoch
-  date.setUTCSeconds(this.timestamp)
-
-  return date
-}
-
-Block.prototype.toBuffer = function (headersOnly) {
-  var buffer = new Buffer(80)
-
-  var offset = 0
-  function writeSlice (slice) {
-    slice.copy(buffer, offset)
-    offset += slice.length
-  }
-
-  function writeUInt32 (i) {
-    buffer.writeUInt32LE(i, offset)
-    offset += 4
-  }
-
-  writeUInt32(this.version)
-  writeSlice(this.prevHash)
-  writeSlice(this.merkleRoot)
-  writeUInt32(this.timestamp)
-  writeUInt32(this.bits)
-  writeUInt32(this.nonce)
-
-  if (headersOnly || !this.transactions) return buffer
-
-  var txLenBuffer = bufferutils.varIntBuffer(this.transactions.length)
-  var txBuffers = this.transactions.map(function (tx) {
-    return tx.toBuffer()
-  })
-
-  return Buffer.concat([buffer, txLenBuffer].concat(txBuffers))
-}
-
-Block.prototype.toHex = function (headersOnly) {
-  return this.toBuffer(headersOnly).toString('hex')
-}
-
-module.exports = Block
-
-}).call(this,require("buffer").Buffer)
-},{"./bufferutils":34,"./crypto":35,"./transaction":44,"buffer":49}],34:[function(require,module,exports){
-(function (Buffer){
-var opcodes = require('./opcodes')
-
-// https://github.com/feross/buffer/blob/master/index.js#L1127
-function verifuint (value, max) {
-  if (typeof value !== 'number') throw new Error('cannot write a non-number as a number')
-  if (value < 0) throw new Error('specified a negative value for writing an unsigned value')
-  if (value > max) throw new Error('value is larger than maximum value for type')
-  if (Math.floor(value) !== value) throw new Error('value has a fractional component')
-}
-
-function pushDataSize (i) {
-  return i < opcodes.OP_PUSHDATA1 ? 1
-  : i < 0xff ? 2
-  : i < 0xffff ? 3
-  : 5
-}
-
-function readPushDataInt (buffer, offset) {
-  var opcode = buffer.readUInt8(offset)
-  var number, size
-
-  // ~6 bit
-  if (opcode < opcodes.OP_PUSHDATA1) {
-    number = opcode
-    size = 1
-
-  // 8 bit
-  } else if (opcode === opcodes.OP_PUSHDATA1) {
-    if (offset + 2 > buffer.length) return null
-    number = buffer.readUInt8(offset + 1)
-    size = 2
-
-  // 16 bit
-  } else if (opcode === opcodes.OP_PUSHDATA2) {
-    if (offset + 3 > buffer.length) return null
-    number = buffer.readUInt16LE(offset + 1)
-    size = 3
-
-  // 32 bit
-  } else {
-    if (offset + 5 > buffer.length) return null
-    if (opcode !== opcodes.OP_PUSHDATA4) throw new Error('Unexpected opcode')
-
-    number = buffer.readUInt32LE(offset + 1)
-    size = 5
-  }
-
-  return {
-    opcode: opcode,
-    number: number,
-    size: size
-  }
-}
-
-function readUInt64LE (buffer, offset) {
-  var a = buffer.readUInt32LE(offset)
-  var b = buffer.readUInt32LE(offset + 4)
-  b *= 0x100000000
-
-  verifuint(b + a, 0x001fffffffffffff)
-
-  return b + a
-}
-
-function readVarInt (buffer, offset) {
-  var t = buffer.readUInt8(offset)
-  var number, size
-
-  // 8 bit
-  if (t < 253) {
-    number = t
-    size = 1
-
-  // 16 bit
-  } else if (t < 254) {
-    number = buffer.readUInt16LE(offset + 1)
-    size = 3
-
-  // 32 bit
-  } else if (t < 255) {
-    number = buffer.readUInt32LE(offset + 1)
-    size = 5
-
-  // 64 bit
-  } else {
-    number = readUInt64LE(buffer, offset + 1)
-    size = 9
-  }
-
-  return {
-    number: number,
-    size: size
-  }
-}
-
-function writePushDataInt (buffer, number, offset) {
-  var size = pushDataSize(number)
-
-  // ~6 bit
-  if (size === 1) {
-    buffer.writeUInt8(number, offset)
-
-  // 8 bit
-  } else if (size === 2) {
-    buffer.writeUInt8(opcodes.OP_PUSHDATA1, offset)
-    buffer.writeUInt8(number, offset + 1)
-
-  // 16 bit
-  } else if (size === 3) {
-    buffer.writeUInt8(opcodes.OP_PUSHDATA2, offset)
-    buffer.writeUInt16LE(number, offset + 1)
-
-  // 32 bit
-  } else {
-    buffer.writeUInt8(opcodes.OP_PUSHDATA4, offset)
-    buffer.writeUInt32LE(number, offset + 1)
-  }
-
-  return size
-}
-
-function writeUInt64LE (buffer, value, offset) {
-  verifuint(value, 0x001fffffffffffff)
-
-  buffer.writeInt32LE(value & -1, offset)
-  buffer.writeUInt32LE(Math.floor(value / 0x100000000), offset + 4)
-}
-
-function varIntSize (i) {
-  return i < 253 ? 1
-  : i < 0x10000 ? 3
-  : i < 0x100000000 ? 5
-  : 9
-}
-
-function writeVarInt (buffer, number, offset) {
-  var size = varIntSize(number)
-
-  // 8 bit
-  if (size === 1) {
-    buffer.writeUInt8(number, offset)
-
-  // 16 bit
-  } else if (size === 3) {
-    buffer.writeUInt8(253, offset)
-    buffer.writeUInt16LE(number, offset + 1)
-
-  // 32 bit
-  } else if (size === 5) {
-    buffer.writeUInt8(254, offset)
-    buffer.writeUInt32LE(number, offset + 1)
-
-  // 64 bit
-  } else {
-    buffer.writeUInt8(255, offset)
-    writeUInt64LE(buffer, number, offset + 1)
-  }
-
-  return size
-}
-
-function varIntBuffer (i) {
-  var size = varIntSize(i)
-  var buffer = new Buffer(size)
-  writeVarInt(buffer, i, 0)
-
-  return buffer
-}
-
-function equal (a, b) {
-  if (a.length !== b.length) return false
-
-  for (var i = 0; i < a.length; ++i) {
-    if (a[i] !== b[i]) return false
-  }
-
-  return true
-}
-
-function reverse (buffer) {
-  var buffer2 = new Buffer(buffer)
-  Array.prototype.reverse.call(buffer2)
-  return buffer2
-}
-
-module.exports = {
-  equal: equal,
-  pushDataSize: pushDataSize,
-  readPushDataInt: readPushDataInt,
-  readUInt64LE: readUInt64LE,
-  readVarInt: readVarInt,
-  reverse: reverse,
-  varIntBuffer: varIntBuffer,
-  varIntSize: varIntSize,
-  writePushDataInt: writePushDataInt,
-  writeUInt64LE: writeUInt64LE,
-  writeVarInt: writeVarInt
-}
-
-}).call(this,require("buffer").Buffer)
-},{"./opcodes":42,"buffer":49}],35:[function(require,module,exports){
-var createHash = require('create-hash')
-
-function hash160 (buffer) {
-  return ripemd160(sha256(buffer))
-}
-
-function hash256 (buffer) {
-  return sha256(sha256(buffer))
-}
-
-function ripemd160 (buffer) {
-  return createHash('rmd160').update(buffer).digest()
-}
-
-function sha1 (buffer) {
-  return createHash('sha1').update(buffer).digest()
-}
-
-function sha256 (buffer) {
-  return createHash('sha256').update(buffer).digest()
-}
-
-module.exports = {
-  hash160: hash160,
-  hash256: hash256,
-  ripemd160: ripemd160,
-  sha1: sha1,
-  sha256: sha256
-}
-
-},{"create-hash":8}],36:[function(require,module,exports){
-(function (Buffer){
-var createHmac = require('create-hmac')
-var typeforce = require('typeforce')
-var types = require('./types')
-
-var BigInteger = require('bigi')
-var ECSignature = require('./ecsignature')
-
-var ZERO = new Buffer([0])
-var ONE = new Buffer([1])
-
-var ecurve = require('ecurve')
-var secp256k1 = ecurve.getCurveByName('secp256k1')
-
-// https://tools.ietf.org/html/rfc6979#section-3.2
-function deterministicGenerateK (hash, x, checkSig) {
-  typeforce(types.tuple(
-    types.Hash256bit,
-    types.Buffer256bit,
-    types.Function
-  ), arguments)
-
-  var k = new Buffer(32)
-  var v = new Buffer(32)
-
-  // Step A, ignored as hash already provided
-  // Step B
-  v.fill(1)
-
-  // Step C
-  k.fill(0)
-
-  // Step D
-  k = createHmac('sha256', k)
-    .update(v)
-    .update(ZERO)
-    .update(x)
-    .update(hash)
-    .digest()
-
-  // Step E
-  v = createHmac('sha256', k).update(v).digest()
-
-  // Step F
-  k = createHmac('sha256', k)
-    .update(v)
-    .update(ONE)
-    .update(x)
-    .update(hash)
-    .digest()
-
-  // Step G
-  v = createHmac('sha256', k).update(v).digest()
-
-  // Step H1/H2a, ignored as tlen === qlen (256 bit)
-  // Step H2b
-  v = createHmac('sha256', k).update(v).digest()
-
-  var T = BigInteger.fromBuffer(v)
-
-  // Step H3, repeat until T is within the interval [1, n - 1] and is suitable for ECDSA
-  while (T.signum() <= 0 || T.compareTo(secp256k1.n) >= 0 || !checkSig(T)) {
-    k = createHmac('sha256', k)
-      .update(v)
-      .update(ZERO)
-      .digest()
-
-    v = createHmac('sha256', k).update(v).digest()
-
-    // Step H1/H2a, again, ignored as tlen === qlen (256 bit)
-    // Step H2b again
-    v = createHmac('sha256', k).update(v).digest()
-    T = BigInteger.fromBuffer(v)
-  }
-
-  return T
-}
-
-var N_OVER_TWO = secp256k1.n.shiftRight(1)
-
-function sign (hash, d) {
-  typeforce(types.tuple(types.Hash256bit, types.BigInt), arguments)
-
-  var x = d.toBuffer(32)
-  var e = BigInteger.fromBuffer(hash)
-  var n = secp256k1.n
-  var G = secp256k1.G
-
-  var r, s
-  deterministicGenerateK(hash, x, function (k) {
-    var Q = G.multiply(k)
-
-    if (secp256k1.isInfinity(Q)) return false
-
-    r = Q.affineX.mod(n)
-    if (r.signum() === 0) return false
-
-    s = k.modInverse(n).multiply(e.add(d.multiply(r))).mod(n)
-    if (s.signum() === 0) return false
-
-    return true
-  })
-
-  // enforce low S values, see bip62: 'low s values in signatures'
-  if (s.compareTo(N_OVER_TWO) > 0) {
-    s = n.subtract(s)
-  }
-
-  return new ECSignature(r, s)
-}
-
-function verify (hash, signature, Q) {
-  typeforce(types.tuple(
-    types.Hash256bit,
-    types.ECSignature,
-    types.ECPoint
-  ), arguments)
-
-  var n = secp256k1.n
-  var G = secp256k1.G
-
-  var r = signature.r
-  var s = signature.s
-
-  // 1.4.1 Enforce r and s are both integers in the interval [1, n − 1]
-  if (r.signum() <= 0 || r.compareTo(n) >= 0) return false
-  if (s.signum() <= 0 || s.compareTo(n) >= 0) return false
-
-  // 1.4.2 H = Hash(M), already done by the user
-  // 1.4.3 e = H
-  var e = BigInteger.fromBuffer(hash)
-
-  // Compute s^-1
-  var sInv = s.modInverse(n)
-
-  // 1.4.4 Compute u1 = es^−1 mod n
-  //               u2 = rs^−1 mod n
-  var u1 = e.multiply(sInv).mod(n)
-  var u2 = r.multiply(sInv).mod(n)
-
-  // 1.4.5 Compute R = (xR, yR)
-  //               R = u1G + u2Q
-  var R = G.multiplyTwo(u1, Q, u2)
-
-  // 1.4.5 (cont.) Enforce R is not at infinity
-  if (secp256k1.isInfinity(R)) return false
-
-  // 1.4.6 Convert the field element R.x to an integer
-  var xR = R.affineX
-
-  // 1.4.7 Set v = xR mod n
-  var v = xR.mod(n)
-
-  // 1.4.8 If v = r, output "valid", and if v != r, output "invalid"
-  return v.equals(r)
-}
-
-/**
-  * Recover a public key from a signature.
-  *
-  * See SEC 1: Elliptic Curve Cryptography, section 4.1.6, "Public
-  * Key Recovery Operation".
-  *
-  * http://www.secg.org/download/aid-780/sec1-v2.pdf
-  */
-function recoverPubKey (e, signature, i) {
-  typeforce(types.tuple(
-    types.BigInt,
-    types.ECSignature,
-    types.UInt2
-  ), arguments)
-
-  var n = secp256k1.n
-  var G = secp256k1.G
-  var r = signature.r
-  var s = signature.s
-
-  if (r.signum() <= 0 || r.compareTo(n) >= 0) throw new Error('Invalid r value')
-  if (s.signum() <= 0 || s.compareTo(n) >= 0) throw new Error('Invalid s value')
-
-  // A set LSB signifies that the y-coordinate is odd
-  var isYOdd = i & 1
-
-  // The more significant bit specifies whether we should use the
-  // first or second candidate key.
-  var isSecondKey = i >> 1
-
-  // 1.1 Let x = r + jn
-  var x = isSecondKey ? r.add(n) : r
-  var R = secp256k1.pointFromX(isYOdd, x)
-
-  // 1.4 Check that nR is at infinity
-  var nR = R.multiply(n)
-  if (!secp256k1.isInfinity(nR)) throw new Error('nR is not a valid curve point')
-
-  // Compute r^-1
-  var rInv = r.modInverse(n)
-
-  // Compute -e from e
-  var eNeg = e.negate().mod(n)
-
-  // 1.6.1 Compute Q = r^-1 (sR -  eG)
-  //               Q = r^-1 (sR + -eG)
-  var Q = R.multiplyTwo(s, G, eNeg).multiply(rInv)
-
-  secp256k1.validate(Q)
-
-  return Q
-}
-
-/**
-  * Calculate pubkey extraction parameter.
-  *
-  * When extracting a pubkey from a signature, we have to
-  * distinguish four different cases. Rather than putting this
-  * burden on the verifier, Bitcoin includes a 2-bit value with the
-  * signature.
-  *
-  * This function simply tries all four cases and returns the value
-  * that resulted in a successful pubkey recovery.
-  */
-function calcPubKeyRecoveryParam (e, signature, Q) {
-  typeforce(types.tuple(
-    types.BigInt,
-    types.ECSignature,
-    types.ECPoint
-  ), arguments)
-
-  for (var i = 0; i < 4; i++) {
-    var Qprime = recoverPubKey(e, signature, i)
-
-    // 1.6.2 Verify Q
-    if (Qprime.equals(Q)) {
-      return i
-    }
-  }
-
-  throw new Error('Unable to find valid recovery factor')
-}
-
-module.exports = {
-  calcPubKeyRecoveryParam: calcPubKeyRecoveryParam,
-  deterministicGenerateK: deterministicGenerateK,
-  recoverPubKey: recoverPubKey,
-  sign: sign,
-  verify: verify,
-
-  // TODO: remove
-  __curve: secp256k1
-}
-
-}).call(this,require("buffer").Buffer)
-},{"./ecsignature":38,"./types":46,"bigi":3,"buffer":49,"create-hmac":22,"ecurve":26,"typeforce":30}],37:[function(require,module,exports){
-(function (Buffer){
-var bcrypto = require('./crypto')
-var bs58check = require('bs58check')
-var ecdsa = require('./ecdsa')
-var randomBytes = require('randombytes')
-var typeforce = require('typeforce')
-var types = require('./types')
-var wif = require('wif')
-
-var NETWORKS = require('./networks')
-var BigInteger = require('bigi')
-
-var ecurve = require('ecurve')
-var secp256k1 = ecdsa.__curve
-
-function ECPair (d, Q, options) {
-  if (options) {
-    typeforce({
-      compressed: types.maybe(types.Boolean),
-      network: types.maybe(types.Network)
-    }, options)
-  }
-
-  options = options || {}
-
-  if (d) {
-    if (d.signum() <= 0) throw new Error('Private key must be greater than 0')
-    if (d.compareTo(secp256k1.n) >= 0) throw new Error('Private key must be less than the curve order')
-    if (Q) throw new TypeError('Unexpected publicKey parameter')
-
-    this.d = d
-  } else {
-    typeforce(types.ECPoint, Q)
-
-    this.__Q = Q
-  }
-
-  this.compressed = options.compressed === undefined ? true : options.compressed
-  this.network = options.network || NETWORKS.bitcoin
-}
-
-Object.defineProperty(ECPair.prototype, 'Q', {
-  get: function () {
-    if (!this.__Q && this.d) {
-      this.__Q = secp256k1.G.multiply(this.d)
-    }
-
-    return this.__Q
-  }
-})
-
-ECPair.fromPublicKeyBuffer = function (buffer, network) {
-  var Q = ecurve.Point.decodeFrom(secp256k1, buffer)
-
-  return new ECPair(null, Q, {
-    compressed: Q.compressed,
-    network: network
-  })
-}
-
-ECPair.fromWIF = function (string, network) {
-  network = network || NETWORKS.bitcoin
-  var buffer = bs58check.decode(string)
-
-  if (types.Array(network)) {
-    var version = buffer[0]
-
-    network = network.filter(function (network) {
-      return version === network.wif
-    }).pop() || {}
-  }
-
-  var decoded = wif.decodeRaw(network.wif, buffer)
-  var d = BigInteger.fromBuffer(decoded.d)
-
-  return new ECPair(d, null, {
-    compressed: decoded.compressed,
-    network: network
-  })
-}
-
-ECPair.makeRandom = function (options) {
-  options = options || {}
-
-  var rng = options.rng || randomBytes
-
-  var d
-  do {
-    var buffer = rng(32)
-    typeforce(types.Buffer256bit, buffer)
-
-    d = BigInteger.fromBuffer(buffer)
-  } while (d.signum() <= 0 || d.compareTo(secp256k1.n) >= 0)
-
-  return new ECPair(d, null, options)
-}
-
-ECPair.prototype.getAddress = function () {
-  var pubKey = this.getPublicKeyBuffer()
-  var pubKeyHash = bcrypto.hash160(pubKey)
-
-  var payload = new Buffer(21)
-  payload.writeUInt8(this.network.pubKeyHash, 0)
-  pubKeyHash.copy(payload, 1)
-
-  return bs58check.encode(payload)
-}
-
-ECPair.prototype.getPublicKeyBuffer = function () {
-  return this.Q.getEncoded(this.compressed)
-}
-
-ECPair.prototype.sign = function (hash) {
-  if (!this.d) throw new Error('Missing private key')
-
-  return ecdsa.sign(hash, this.d)
-}
-
-ECPair.prototype.toWIF = function () {
-  if (!this.d) throw new Error('Missing private key')
-
-  return wif.encode(this.network.wif, this.d.toBuffer(32), this.compressed)
-}
-
-ECPair.prototype.verify = function (hash, signature) {
-  return ecdsa.verify(hash, signature, this.Q)
-}
-
-module.exports = ECPair
-
-}).call(this,require("buffer").Buffer)
-},{"./crypto":35,"./ecdsa":36,"./networks":41,"./types":46,"bigi":3,"bs58check":6,"buffer":49,"ecurve":26,"randombytes":29,"typeforce":30,"wif":31}],38:[function(require,module,exports){
-(function (Buffer){
-var bip66 = require('bip66')
-var typeforce = require('typeforce')
-var types = require('./types')
-
-var BigInteger = require('bigi')
-
-function ECSignature (r, s) {
-  typeforce(types.tuple(types.BigInt, types.BigInt), arguments)
-
-  this.r = r
-  this.s = s
-}
-
-ECSignature.parseCompact = function (buffer) {
-  if (buffer.length !== 65) throw new Error('Invalid signature length')
-
-  var flagByte = buffer.readUInt8(0) - 27
-  if (flagByte !== (flagByte & 7)) throw new Error('Invalid signature parameter')
-
-  var compressed = !!(flagByte & 4)
-  var recoveryParam = flagByte & 3
-
-  var r = BigInteger.fromBuffer(buffer.slice(1, 33))
-  var s = BigInteger.fromBuffer(buffer.slice(33))
-
-  return {
-    compressed: compressed,
-    i: recoveryParam,
-    signature: new ECSignature(r, s)
-  }
-}
-
-ECSignature.fromDER = function (buffer) {
-  var decode = bip66.decode(buffer)
-  var r = BigInteger.fromDERInteger(decode.r)
-  var s = BigInteger.fromDERInteger(decode.s)
-
-  return new ECSignature(r, s)
-}
-
-// BIP62: 1 byte hashType flag (only 0x01, 0x02, 0x03, 0x81, 0x82 and 0x83 are allowed)
-ECSignature.parseScriptSignature = function (buffer) {
-  var hashType = buffer.readUInt8(buffer.length - 1)
-  var hashTypeMod = hashType & ~0x80
-
-  if (hashTypeMod <= 0x00 || hashTypeMod >= 0x04) throw new Error('Invalid hashType ' + hashType)
-
-  return {
-    signature: ECSignature.fromDER(buffer.slice(0, -1)),
-    hashType: hashType
-  }
-}
-
-ECSignature.prototype.toCompact = function (i, compressed) {
-  if (compressed) {
-    i += 4
-  }
-
-  i += 27
-
-  var buffer = new Buffer(65)
-  buffer.writeUInt8(i, 0)
-
-  this.r.toBuffer(32).copy(buffer, 1)
-  this.s.toBuffer(32).copy(buffer, 33)
-
-  return buffer
-}
-
-ECSignature.prototype.toDER = function () {
-  var r = new Buffer(this.r.toDERInteger())
-  var s = new Buffer(this.s.toDERInteger())
-
-  return bip66.encode(r, s)
-}
-
-ECSignature.prototype.toScriptSignature = function (hashType) {
-  var hashTypeMod = hashType & ~0x80
-  if (hashTypeMod <= 0 || hashTypeMod >= 4) throw new Error('Invalid hashType ' + hashType)
-
-  var hashTypeBuffer = new Buffer(1)
-  hashTypeBuffer.writeUInt8(hashType, 0)
-
-  return Buffer.concat([this.toDER(), hashTypeBuffer])
-}
-
-module.exports = ECSignature
-
-}).call(this,require("buffer").Buffer)
-},{"./types":46,"bigi":3,"bip66":5,"buffer":49,"typeforce":30}],39:[function(require,module,exports){
-(function (Buffer){
-var base58check = require('bs58check')
-var bcrypto = require('./crypto')
-var createHmac = require('create-hmac')
-var typeforce = require('typeforce')
-var types = require('./types')
-var NETWORKS = require('./networks')
-
-var BigInteger = require('bigi')
-var ECPair = require('./ecpair')
-
-var ecurve = require('ecurve')
-var curve = ecurve.getCurveByName('secp256k1')
-
-function HDNode (keyPair, chainCode) {
-  typeforce(types.tuple('ECPair', types.Buffer256bit), arguments)
-
-  if (!keyPair.compressed) throw new TypeError('BIP32 only allows compressed keyPairs')
-
-  this.keyPair = keyPair
-  this.chainCode = chainCode
-  this.depth = 0
-  this.index = 0
-  this.parentFingerprint = 0x00000000
-}
-
-HDNode.HIGHEST_BIT = 0x80000000
-HDNode.LENGTH = 78
-HDNode.MASTER_SECRET = new Buffer('Bitcoin seed')
-
-HDNode.fromSeedBuffer = function (seed, network) {
-  typeforce(types.tuple(types.Buffer, types.maybe(types.Network)), arguments)
-
-  if (seed.length < 16) throw new TypeError('Seed should be at least 128 bits')
-  if (seed.length > 64) throw new TypeError('Seed should be at most 512 bits')
-
-  var I = createHmac('sha512', HDNode.MASTER_SECRET).update(seed).digest()
-  var IL = I.slice(0, 32)
-  var IR = I.slice(32)
-
-  // In case IL is 0 or >= n, the master key is invalid
-  // This is handled by the ECPair constructor
-  var pIL = BigInteger.fromBuffer(IL)
-  var keyPair = new ECPair(pIL, null, {
-    network: network
-  })
-
-  return new HDNode(keyPair, IR)
-}
-
-HDNode.fromSeedHex = function (hex, network) {
-  return HDNode.fromSeedBuffer(new Buffer(hex, 'hex'), network)
-}
-
-HDNode.fromBase58 = function (string, networks) {
-  var buffer = base58check.decode(string)
-  if (buffer.length !== 78) throw new Error('Invalid buffer length')
-
-  // 4 bytes: version bytes
-  var version = buffer.readUInt32BE(0)
-  var network
-
-  // list of networks?
-  if (Array.isArray(networks)) {
-    network = networks.filter(function (network) {
-      return version === network.bip32.private ||
-             version === network.bip32.public
-    }).pop() || {}
-
-  // otherwise, assume a network object (or default to bitcoin)
-  } else {
-    network = networks || NETWORKS.bitcoin
-  }
-
-  if (version !== network.bip32.private &&
-    version !== network.bip32.public) throw new Error('Invalid network')
-
-  // 1 byte: depth: 0x00 for master nodes, 0x01 for level-1 descendants, ...
-  var depth = buffer[4]
-
-  // 4 bytes: the fingerprint of the parent's key (0x00000000 if master key)
-  var parentFingerprint = buffer.readUInt32BE(5)
-  if (depth === 0) {
-    if (parentFingerprint !== 0x00000000) throw new Error('Invalid parent fingerprint')
-  }
-
-  // 4 bytes: child number. This is the number i in xi = xpar/i, with xi the key being serialized.
-  // This is encoded in MSB order. (0x00000000 if master key)
-  var index = buffer.readUInt32BE(9)
-  if (depth === 0 && index !== 0) throw new Error('Invalid index')
-
-  // 32 bytes: the chain code
-  var chainCode = buffer.slice(13, 45)
-  var keyPair
-
-  // 33 bytes: private key data (0x00 + k)
-  if (version === network.bip32.private) {
-    if (buffer.readUInt8(45) !== 0x00) throw new Error('Invalid private key')
-
-    var d = BigInteger.fromBuffer(buffer.slice(46, 78))
-
-    keyPair = new ECPair(d, null, {
-      network: network
-    })
-
-  // 33 bytes: public key data (0x02 + X or 0x03 + X)
-  } else {
-    var Q = ecurve.Point.decodeFrom(curve, buffer.slice(45, 78))
-    if (!Q.compressed) throw new Error('Invalid public key')
-
-    // Verify that the X coordinate in the public point corresponds to a point on the curve.
-    // If not, the extended public key is invalid.
-    curve.validate(Q)
-
-    keyPair = new ECPair(null, Q, {
-      network: network
-    })
-  }
-
-  var hd = new HDNode(keyPair, chainCode)
-  hd.depth = depth
-  hd.index = index
-  hd.parentFingerprint = parentFingerprint
-
-  return hd
-}
-
-HDNode.prototype.getAddress = function () {
-  return this.keyPair.getAddress()
-}
-
-HDNode.prototype.getIdentifier = function () {
-  return bcrypto.hash160(this.keyPair.getPublicKeyBuffer())
-}
-
-HDNode.prototype.getFingerprint = function () {
-  return this.getIdentifier().slice(0, 4)
-}
-
-HDNode.prototype.neutered = function () {
-  var neuteredKeyPair = new ECPair(null, this.keyPair.Q, {
-    network: this.keyPair.network
-  })
-
-  var neutered = new HDNode(neuteredKeyPair, this.chainCode)
-  neutered.depth = this.depth
-  neutered.index = this.index
-  neutered.parentFingerprint = this.parentFingerprint
-
-  return neutered
-}
-
-HDNode.prototype.toBase58 = function (__isPrivate) {
-  if (__isPrivate !== undefined) throw new TypeError('Unsupported argument in 2.0.0')
-
-  // Version
-  var network = this.keyPair.network
-  var version = this.keyPair.d ? network.bip32.private : network.bip32.public
-  var buffer = new Buffer(78)
-
-  // 4 bytes: version bytes
-  buffer.writeUInt32BE(version, 0)
-
-  // 1 byte: depth: 0x00 for master nodes, 0x01 for level-1 descendants, ....
-  buffer.writeUInt8(this.depth, 4)
-
-  // 4 bytes: the fingerprint of the parent's key (0x00000000 if master key)
-  buffer.writeUInt32BE(this.parentFingerprint, 5)
-
-  // 4 bytes: child number. This is the number i in xi = xpar/i, with xi the key being serialized.
-  // This is encoded in big endian. (0x00000000 if master key)
-  buffer.writeUInt32BE(this.index, 9)
-
-  // 32 bytes: the chain code
-  this.chainCode.copy(buffer, 13)
-
-  // 33 bytes: the public key or private key data
-  if (this.keyPair.d) {
-    // 0x00 + k for private keys
-    buffer.writeUInt8(0, 45)
-    this.keyPair.d.toBuffer(32).copy(buffer, 46)
-
-  // 33 bytes: the public key
-  } else {
-    // X9.62 encoding for public keys
-    this.keyPair.getPublicKeyBuffer().copy(buffer, 45)
-  }
-
-  return base58check.encode(buffer)
-}
-
-// https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#child-key-derivation-ckd-functions
-HDNode.prototype.derive = function (index) {
-  var isHardened = index >= HDNode.HIGHEST_BIT
-  var data = new Buffer(37)
-
-  // Hardened child
-  if (isHardened) {
-    if (!this.keyPair.d) throw new TypeError('Could not derive hardened child key')
-
-    // data = 0x00 || ser256(kpar) || ser32(index)
-    data[0] = 0x00
-    this.keyPair.d.toBuffer(32).copy(data, 1)
-    data.writeUInt32BE(index, 33)
-
-  // Normal child
-  } else {
-    // data = serP(point(kpar)) || ser32(index)
-    //      = serP(Kpar) || ser32(index)
-    this.keyPair.getPublicKeyBuffer().copy(data, 0)
-    data.writeUInt32BE(index, 33)
-  }
-
-  var I = createHmac('sha512', this.chainCode).update(data).digest()
-  var IL = I.slice(0, 32)
-  var IR = I.slice(32)
-
-  var pIL = BigInteger.fromBuffer(IL)
-
-  // In case parse256(IL) >= n, proceed with the next value for i
-  if (pIL.compareTo(curve.n) >= 0) {
-    return this.derive(index + 1)
-  }
-
-  // Private parent key -> private child key
-  var derivedKeyPair
-  if (this.keyPair.d) {
-    // ki = parse256(IL) + kpar (mod n)
-    var ki = pIL.add(this.keyPair.d).mod(curve.n)
-
-    // In case ki == 0, proceed with the next value for i
-    if (ki.signum() === 0) {
-      return this.derive(index + 1)
-    }
-
-    derivedKeyPair = new ECPair(ki, null, {
-      network: this.keyPair.network
-    })
-
-  // Public parent key -> public child key
-  } else {
-    // Ki = point(parse256(IL)) + Kpar
-    //    = G*IL + Kpar
-    var Ki = curve.G.multiply(pIL).add(this.keyPair.Q)
-
-    // In case Ki is the point at infinity, proceed with the next value for i
-    if (curve.isInfinity(Ki)) {
-      return this.derive(index + 1)
-    }
-
-    derivedKeyPair = new ECPair(null, Ki, {
-      network: this.keyPair.network
-    })
-  }
-
-  var hd = new HDNode(derivedKeyPair, IR)
-  hd.depth = this.depth + 1
-  hd.index = index
-  hd.parentFingerprint = this.getFingerprint().readUInt32BE(0)
-
-  return hd
-}
-
-HDNode.prototype.deriveHardened = function (index) {
-  // Only derives hardened private keys by default
-  return this.derive(index + HDNode.HIGHEST_BIT)
-}
-
-HDNode.prototype.toString = HDNode.prototype.toBase58
-
-module.exports = HDNode
-
-}).call(this,require("buffer").Buffer)
-},{"./crypto":35,"./ecpair":37,"./networks":41,"./types":46,"bigi":3,"bs58check":6,"buffer":49,"create-hmac":22,"ecurve":26,"typeforce":30}],40:[function(require,module,exports){
-(function (Buffer){
-var bufferutils = require('./bufferutils')
-var bcrypto = require('./crypto')
-var ecdsa = require('./ecdsa')
-var networks = require('./networks')
-
-var BigInteger = require('bigi')
-var ECPair = require('./ecpair')
-var ECSignature = require('./ecsignature')
-
-function magicHash (message, network) {
-  var messagePrefix = new Buffer(network.messagePrefix)
-  var messageBuffer = new Buffer(message)
-  var lengthBuffer = bufferutils.varIntBuffer(messageBuffer.length)
-
-  var buffer = Buffer.concat([messagePrefix, lengthBuffer, messageBuffer])
-  return bcrypto.hash256(buffer)
-}
-
-function sign (keyPair, message, network) {
-  network = network || networks.bitcoin
-
-  var hash = magicHash(message, network)
-  var signature = keyPair.sign(hash)
-  var e = BigInteger.fromBuffer(hash)
-  var i = ecdsa.calcPubKeyRecoveryParam(e, signature, keyPair.Q)
-
-  return signature.toCompact(i, keyPair.compressed)
-}
-
-function verify (address, signature, message, network) {
-  if (!Buffer.isBuffer(signature)) {
-    signature = new Buffer(signature, 'base64')
-  }
-
-  network = network || networks.bitcoin
-
-  var hash = magicHash(message, network)
-  var parsed = ECSignature.parseCompact(signature)
-  var e = BigInteger.fromBuffer(hash)
-  var Q = ecdsa.recoverPubKey(e, parsed.signature, parsed.i)
-
-  var keyPair = new ECPair(null, Q, {
-    compressed: parsed.compressed,
-    network: network
-  })
-
-  return keyPair.getAddress() === address
-}
-
-module.exports = {
-  magicHash: magicHash,
-  sign: sign,
-  verify: verify
-}
-
-}).call(this,require("buffer").Buffer)
-},{"./bufferutils":34,"./crypto":35,"./ecdsa":36,"./ecpair":37,"./ecsignature":38,"./networks":41,"bigi":3,"buffer":49}],41:[function(require,module,exports){
-// https://en.bitcoin.it/wiki/List_of_address_prefixes
-// Dogecoin BIP32 is a proposed standard: https://bitcointalk.org/index.php?topic=409731
-
-module.exports = {
-  bitcoin: {
-    messagePrefix: '\x18Bitcoin Signed Message:\n',
-    bip32: {
-      public: 0x0488b21e,
-      private: 0x0488ade4
-    },
-    pubKeyHash: 0x00,
-    scriptHash: 0x05,
-    wif: 0x80,
-    dustThreshold: 546 // https://github.com/bitcoin/bitcoin/blob/v0.9.2/src/core.h#L151-L162
-  },
-  testnet: {
-    messagePrefix: '\x18Bitcoin Signed Message:\n',
-    bip32: {
-      public: 0x043587cf,
-      private: 0x04358394
-    },
-    pubKeyHash: 0x6f,
-    scriptHash: 0xc4,
-    wif: 0xef,
-    dustThreshold: 546
-  },
-  litecoin: {
-    messagePrefix: '\x19Litecoin Signed Message:\n',
-    bip32: {
-      public: 0x019da462,
-      private: 0x019d9cfe
-    },
-    pubKeyHash: 0x30,
-    scriptHash: 0x05,
-    wif: 0xb0,
-    dustThreshold: 0 // https://github.com/litecoin-project/litecoin/blob/v0.8.7.2/src/main.cpp#L360-L365
-  },
-  dogecoin: {
-    messagePrefix: '\x19Dogecoin Signed Message:\n',
-    bip32: {
-      public: 0x02facafd,
-      private: 0x02fac398
-    },
-    pubKeyHash: 0x1e,
-    scriptHash: 0x16,
-    wif: 0x9e,
-    dustThreshold: 0 // https://github.com/dogecoin/dogecoin/blob/v1.7.1/src/core.h#L155-L160
-  },
-  dash: {
-    messagePrefix: '\x19DarkCoin Signed Message:\n',
-    bip32: {
-      public: 0x02fe52f8,
-      private: 0x02fe52cc
-    },
-    pubKeyHash: 0x4c,
-    scriptHash: 0x10,
-    wif: 0xcc,
-    dustThreshold: 5460 // https://github.com/dashpay/dash/blob/v0.12.0.x/src/primitives/transaction.h#L144-L155
-  },
-  dash_testnet: {
-    messagePrefix: '\x19DarkCoin Signed Message:\n',
-    bip32: {
-      public: 0x3a8061a0,
-      private: 0x3a805837
-    },
-    pubKeyHash: 0x8b,
-    scriptHash: 0x13,
-    wif: 0xef,
-    dustThreshold: 5460 // https://github.com/dashpay/dash/blob/v0.12.0.x/src/primitives/transaction.h#L144-L155
-  }
-}
-
-},{}],42:[function(require,module,exports){
-module.exports={
-  "OP_FALSE": 0,
-  "OP_0": 0,
-  "OP_PUSHDATA1": 76,
-  "OP_PUSHDATA2": 77,
-  "OP_PUSHDATA4": 78,
-  "OP_1NEGATE": 79,
-  "OP_RESERVED": 80,
-  "OP_1": 81,
-  "OP_TRUE": 81,
-  "OP_2": 82,
-  "OP_3": 83,
-  "OP_4": 84,
-  "OP_5": 85,
-  "OP_6": 86,
-  "OP_7": 87,
-  "OP_8": 88,
-  "OP_9": 89,
-  "OP_10": 90,
-  "OP_11": 91,
-  "OP_12": 92,
-  "OP_13": 93,
-  "OP_14": 94,
-  "OP_15": 95,
-  "OP_16": 96,
-
-  "OP_NOP": 97,
-  "OP_VER": 98,
-  "OP_IF": 99,
-  "OP_NOTIF": 100,
-  "OP_VERIF": 101,
-  "OP_VERNOTIF": 102,
-  "OP_ELSE": 103,
-  "OP_ENDIF": 104,
-  "OP_VERIFY": 105,
-  "OP_RETURN": 106,
-
-  "OP_TOALTSTACK": 107,
-  "OP_FROMALTSTACK": 108,
-  "OP_2DROP": 109,
-  "OP_2DUP": 110,
-  "OP_3DUP": 111,
-  "OP_2OVER": 112,
-  "OP_2ROT": 113,
-  "OP_2SWAP": 114,
-  "OP_IFDUP": 115,
-  "OP_DEPTH": 116,
-  "OP_DROP": 117,
-  "OP_DUP": 118,
-  "OP_NIP": 119,
-  "OP_OVER": 120,
-  "OP_PICK": 121,
-  "OP_ROLL": 122,
-  "OP_ROT": 123,
-  "OP_SWAP": 124,
-  "OP_TUCK": 125,
-
-  "OP_CAT": 126,
-  "OP_SUBSTR": 127,
-  "OP_LEFT": 128,
-  "OP_RIGHT": 129,
-  "OP_SIZE": 130,
-
-  "OP_INVERT": 131,
-  "OP_AND": 132,
-  "OP_OR": 133,
-  "OP_XOR": 134,
-  "OP_EQUAL": 135,
-  "OP_EQUALVERIFY": 136,
-  "OP_RESERVED1": 137,
-  "OP_RESERVED2": 138,
-
-  "OP_1ADD": 139,
-  "OP_1SUB": 140,
-  "OP_2MUL": 141,
-  "OP_2DIV": 142,
-  "OP_NEGATE": 143,
-  "OP_ABS": 144,
-  "OP_NOT": 145,
-  "OP_0NOTEQUAL": 146,
-  "OP_ADD": 147,
-  "OP_SUB": 148,
-  "OP_MUL": 149,
-  "OP_DIV": 150,
-  "OP_MOD": 151,
-  "OP_LSHIFT": 152,
-  "OP_RSHIFT": 153,
-
-  "OP_BOOLAND": 154,
-  "OP_BOOLOR": 155,
-  "OP_NUMEQUAL": 156,
-  "OP_NUMEQUALVERIFY": 157,
-  "OP_NUMNOTEQUAL": 158,
-  "OP_LESSTHAN": 159,
-  "OP_GREATERTHAN": 160,
-  "OP_LESSTHANOREQUAL": 161,
-  "OP_GREATERTHANOREQUAL": 162,
-  "OP_MIN": 163,
-  "OP_MAX": 164,
-
-  "OP_WITHIN": 165,
-
-  "OP_RIPEMD160": 166,
-  "OP_SHA1": 167,
-  "OP_SHA256": 168,
-  "OP_HASH160": 169,
-  "OP_HASH256": 170,
-  "OP_CODESEPARATOR": 171,
-  "OP_CHECKSIG": 172,
-  "OP_CHECKSIGVERIFY": 173,
-  "OP_CHECKMULTISIG": 174,
-  "OP_CHECKMULTISIGVERIFY": 175,
-
-  "OP_NOP1": 176,
-  "OP_NOP2": 177,
-  "OP_NOP3": 178,
-  "OP_NOP4": 179,
-  "OP_NOP5": 180,
-  "OP_NOP6": 181,
-  "OP_NOP7": 182,
-  "OP_NOP8": 183,
-  "OP_NOP9": 184,
-  "OP_NOP10": 185,
-
-  "OP_PUBKEYHASH": 253,
-  "OP_PUBKEY": 254,
-  "OP_INVALIDOPCODE": 255
-}
-
-},{}],43:[function(require,module,exports){
-(function (Buffer){
-var bip66 = require('bip66')
-var bufferutils = require('./bufferutils')
-var typeforce = require('typeforce')
-var types = require('./types')
-
-var OPS = require('./opcodes')
-var REVERSE_OPS = []
-for (var op in OPS) {
-  var code = OPS[op]
-  REVERSE_OPS[code] = op
-}
-
-function toASM (chunks) {
-  if (types.Buffer(chunks)) {
-    chunks = decompile(chunks)
-  }
-
-  return chunks.map(function (chunk) {
-    // data?
-    if (Buffer.isBuffer(chunk)) return chunk.toString('hex')
-
-    // opcode!
-    return REVERSE_OPS[chunk]
-  }).join(' ')
-}
-
-function fromASM (asm) {
-  typeforce(types.String, asm)
-
-  return compile(asm.split(' ').map(function (chunkStr) {
-    // opcode?
-    if (OPS[chunkStr] !== undefined) return OPS[chunkStr]
-
-    // data!
-    return new Buffer(chunkStr, 'hex')
-  }))
-}
-
-function compile (chunks) {
-  // TODO: remove me
-  if (types.Buffer(chunks)) return chunks
-
-  typeforce(types.Array, chunks)
-
-  var bufferSize = chunks.reduce(function (accum, chunk) {
-    // data chunk
-    if (Buffer.isBuffer(chunk)) {
-      return accum + bufferutils.pushDataSize(chunk.length) + chunk.length
-    }
-
-    // opcode
-    return accum + 1
-  }, 0.0)
-
-  var buffer = new Buffer(bufferSize)
-  var offset = 0
-
-  chunks.forEach(function (chunk) {
-    // data chunk
-    if (Buffer.isBuffer(chunk)) {
-      offset += bufferutils.writePushDataInt(buffer, chunk.length, offset)
-
-      chunk.copy(buffer, offset)
-      offset += chunk.length
-
-    // opcode
-    } else {
-      buffer.writeUInt8(chunk, offset)
-      offset += 1
-    }
-  })
-
-  if (offset !== buffer.length) throw new Error('Could not decode chunks')
-  return buffer
-}
-
-function decompile (buffer) {
-  // TODO: remove me
-  if (types.Array(buffer)) return buffer
-
-  typeforce(types.Buffer, buffer)
-
-  var chunks = []
-  var i = 0
-
-  while (i < buffer.length) {
-    var opcode = buffer[i]
-
-    // data chunk
-    if ((opcode > OPS.OP_0) && (opcode <= OPS.OP_PUSHDATA4)) {
-      var d = bufferutils.readPushDataInt(buffer, i)
-
-      // did reading a pushDataInt fail? empty script
-      if (d === null) return []
-      i += d.size
-
-      // attempt to read too much data? empty script
-      if (i + d.number > buffer.length) return []
-
-      var data = buffer.slice(i, i + d.number)
-      i += d.number
-
-      chunks.push(data)
-
-    // opcode
-    } else {
-      chunks.push(opcode)
-
-      i += 1
-    }
-  }
-
-  return chunks
-}
-
-function isCanonicalPubKey (buffer) {
-  if (!Buffer.isBuffer(buffer)) return false
-  if (buffer.length < 33) return false
-
-  switch (buffer[0]) {
-    case 0x02:
-    case 0x03:
-      return buffer.length === 33
-    case 0x04:
-      return buffer.length === 65
-  }
-
-  return false
-}
-
-function isCanonicalSignature (buffer) {
-  if (!Buffer.isBuffer(buffer)) return false
-  if (!isDefinedHashType(buffer[buffer.length - 1])) return false
-
-  return bip66.check(buffer.slice(0, -1))
-}
-
-function isDefinedHashType (hashType) {
-  var hashTypeMod = hashType & ~0x80
-
-// return hashTypeMod > SIGHASH_ALL && hashTypeMod < SIGHASH_SINGLE
-  return hashTypeMod > 0x00 && hashTypeMod < 0x04
-}
-
-function isPubKeyHashInput (script) {
-  var chunks = decompile(script)
-
-  return chunks.length === 2 &&
-    isCanonicalSignature(chunks[0]) &&
-    isCanonicalPubKey(chunks[1])
-}
-
-function isPubKeyHashOutput (script) {
-  var chunks = decompile(script)
-
-  return chunks.length === 5 &&
-    chunks[0] === OPS.OP_DUP &&
-    chunks[1] === OPS.OP_HASH160 &&
-    Buffer.isBuffer(chunks[2]) &&
-    chunks[2].length === 20 &&
-    chunks[3] === OPS.OP_EQUALVERIFY &&
-    chunks[4] === OPS.OP_CHECKSIG
-}
-
-function isPubKeyInput (script) {
-  var chunks = decompile(script)
-
-  return chunks.length === 1 &&
-    isCanonicalSignature(chunks[0])
-}
-
-function isPubKeyOutput (script) {
-  var chunks = decompile(script)
-
-  return chunks.length === 2 &&
-    isCanonicalPubKey(chunks[0]) &&
-    chunks[1] === OPS.OP_CHECKSIG
-}
-
-function isScriptHashInput (script, allowIncomplete) {
-  var chunks = decompile(script)
-  if (chunks.length < 2) return false
-
-  var lastChunk = chunks[chunks.length - 1]
-  if (!Buffer.isBuffer(lastChunk)) return false
-
-  var scriptSigChunks = chunks.slice(0, -1)
-  var redeemScriptChunks = decompile(lastChunk)
-
-  // is redeemScript a valid script?
-  if (redeemScriptChunks.length === 0) return false
-
-  return classifyInput(scriptSigChunks, allowIncomplete) === classifyOutput(redeemScriptChunks)
-}
-
-function isScriptHashOutput (script) {
-  var chunks = decompile(script)
-
-  return chunks.length === 3 &&
-    chunks[0] === OPS.OP_HASH160 &&
-    Buffer.isBuffer(chunks[1]) &&
-    chunks[1].length === 20 &&
-    chunks[2] === OPS.OP_EQUAL
-}
-
-// allowIncomplete is to account for combining signatures
-// See https://github.com/bitcoin/bitcoin/blob/f425050546644a36b0b8e0eb2f6934a3e0f6f80f/src/script/sign.cpp#L195-L197
-function isMultisigInput (script, allowIncomplete) {
-  var chunks = decompile(script)
-  if (chunks.length < 2) return false
-  if (chunks[0] !== OPS.OP_0) return false
-
-  if (allowIncomplete) {
-    return chunks.slice(1).every(function (chunk) {
-      return chunk === OPS.OP_0 || isCanonicalSignature(chunk)
-    })
-  }
-
-  return chunks.slice(1).every(isCanonicalSignature)
-}
-
-function isMultisigOutput (script) {
-  var chunks = decompile(script)
-  if (chunks.length < 4) return false
-  if (chunks[chunks.length - 1] !== OPS.OP_CHECKMULTISIG) return false
-
-  var mOp = chunks[0]
-  if (mOp === OPS.OP_0) return false
-  if (mOp < OPS.OP_1) return false
-  if (mOp > OPS.OP_16) return false
-
-  var nOp = chunks[chunks.length - 2]
-  if (nOp === OPS.OP_0) return false
-  if (nOp < OPS.OP_1) return false
-  if (nOp > OPS.OP_16) return false
-
-  var m = mOp - (OPS.OP_1 - 1)
-  var n = nOp - (OPS.OP_1 - 1)
-  if (n < m) return false
-
-  var pubKeys = chunks.slice(1, -2)
-  if (n < pubKeys.length) return false
-
-  return pubKeys.every(isCanonicalPubKey)
-}
-
-function isNullDataOutput (script) {
-  var chunks = decompile(script)
-  return chunks[0] === OPS.OP_RETURN
-}
-
-function classifyOutput (script) {
-  var chunks = decompile(script)
-
-  if (isPubKeyHashOutput(chunks)) {
-    return 'pubkeyhash'
-  } else if (isScriptHashOutput(chunks)) {
-    return 'scripthash'
-  } else if (isMultisigOutput(chunks)) {
-    return 'multisig'
-  } else if (isPubKeyOutput(chunks)) {
-    return 'pubkey'
-  } else if (isNullDataOutput(chunks)) {
-    return 'nulldata'
-  }
-
-  return 'nonstandard'
-}
-
-function classifyInput (script, allowIncomplete) {
-  var chunks = decompile(script)
-
-  if (isPubKeyHashInput(chunks)) {
-    return 'pubkeyhash'
-  } else if (isMultisigInput(chunks, allowIncomplete)) {
-    return 'multisig'
-  } else if (isScriptHashInput(chunks, allowIncomplete)) {
-    return 'scripthash'
-  } else if (isPubKeyInput(chunks)) {
-    return 'pubkey'
-  }
-
-  return 'nonstandard'
-}
-
-// Standard Script Templates
-// {pubKey} OP_CHECKSIG
-function pubKeyOutput (pubKey) {
-  return compile([pubKey, OPS.OP_CHECKSIG])
-}
-
-// OP_DUP OP_HASH160 {pubKeyHash} OP_EQUALVERIFY OP_CHECKSIG
-function pubKeyHashOutput (pubKeyHash) {
-  typeforce(types.Hash160bit, pubKeyHash)
-
-  return compile([OPS.OP_DUP, OPS.OP_HASH160, pubKeyHash, OPS.OP_EQUALVERIFY, OPS.OP_CHECKSIG])
-}
-
-// OP_HASH160 {scriptHash} OP_EQUAL
-function scriptHashOutput (scriptHash) {
-  typeforce(types.Hash160bit, scriptHash)
-
-  return compile([OPS.OP_HASH160, scriptHash, OPS.OP_EQUAL])
-}
-
-// m [pubKeys ...] n OP_CHECKMULTISIG
-function multisigOutput (m, pubKeys) {
-  typeforce(types.tuple(types.Number, [types.Buffer]), arguments)
-
-  var n = pubKeys.length
-  if (n < m) throw new Error('Not enough pubKeys provided')
-
-  return compile([].concat(
-    (OPS.OP_1 - 1) + m,
-    pubKeys,
-    (OPS.OP_1 - 1) + n,
-    OPS.OP_CHECKMULTISIG
-  ))
-}
-
-// {signature}
-function pubKeyInput (signature) {
-  typeforce(types.Buffer, signature)
-
-  return compile([signature])
-}
-
-// {signature} {pubKey}
-function pubKeyHashInput (signature, pubKey) {
-  typeforce(types.tuple(types.Buffer, types.Buffer), arguments)
-
-  return compile([signature, pubKey])
-}
-
-// <scriptSig> {serialized scriptPubKey script}
-function scriptHashInput (scriptSig, scriptPubKey) {
-  var scriptSigChunks = decompile(scriptSig)
-  var serializedScriptPubKey = compile(scriptPubKey)
-
-  return compile([].concat(
-    scriptSigChunks,
-    serializedScriptPubKey
-  ))
-}
-
-// OP_0 [signatures ...]
-function multisigInput (signatures, scriptPubKey) {
-  if (scriptPubKey) {
-    var chunks = decompile(scriptPubKey)
-    if (!isMultisigOutput(chunks)) throw new Error('Expected multisig scriptPubKey')
-
-    var mOp = chunks[0]
-    var nOp = chunks[chunks.length - 2]
-    var m = mOp - (OPS.OP_1 - 1)
-    var n = nOp - (OPS.OP_1 - 1)
-
-    if (signatures.length < m) throw new Error('Not enough signatures provided')
-    if (signatures.length > n) throw new Error('Too many signatures provided')
-  }
-
-  return compile([].concat(OPS.OP_0, signatures))
-}
-
-function nullDataOutput (data) {
-  return compile([OPS.OP_RETURN, data])
-}
-
-module.exports = {
-  compile: compile,
-  decompile: decompile,
-  fromASM: fromASM,
-  toASM: toASM,
-
-  isCanonicalPubKey: isCanonicalPubKey,
-  isCanonicalSignature: isCanonicalSignature,
-  isDefinedHashType: isDefinedHashType,
-  isPubKeyHashInput: isPubKeyHashInput,
-  isPubKeyHashOutput: isPubKeyHashOutput,
-  isPubKeyInput: isPubKeyInput,
-  isPubKeyOutput: isPubKeyOutput,
-  isScriptHashInput: isScriptHashInput,
-  isScriptHashOutput: isScriptHashOutput,
-  isMultisigInput: isMultisigInput,
-  isMultisigOutput: isMultisigOutput,
-  isNullDataOutput: isNullDataOutput,
-  classifyOutput: classifyOutput,
-  classifyInput: classifyInput,
-  pubKeyOutput: pubKeyOutput,
-  pubKeyHashOutput: pubKeyHashOutput,
-  scriptHashOutput: scriptHashOutput,
-  multisigOutput: multisigOutput,
-  pubKeyInput: pubKeyInput,
-  pubKeyHashInput: pubKeyHashInput,
-  scriptHashInput: scriptHashInput,
-  multisigInput: multisigInput,
-  nullDataOutput: nullDataOutput
-}
-
-}).call(this,require("buffer").Buffer)
-},{"./bufferutils":34,"./opcodes":42,"./types":46,"bip66":5,"buffer":49,"typeforce":30}],44:[function(require,module,exports){
-(function (Buffer){
-var bufferutils = require('./bufferutils')
-var bcrypto = require('./crypto')
-var opcodes = require('./opcodes')
-var bscript = require('./script')
-var typeforce = require('typeforce')
-var types = require('./types')
-
-function Transaction () {
-  this.version = 1
-  this.locktime = 0
-  this.ins = []
-  this.outs = []
-}
-
-Transaction.DEFAULT_SEQUENCE = 0xffffffff
-Transaction.SIGHASH_ALL = 0x01
-Transaction.SIGHASH_NONE = 0x02
-Transaction.SIGHASH_SINGLE = 0x03
-Transaction.SIGHASH_ANYONECANPAY = 0x80
-
-Transaction.fromBuffer = function (buffer, __noStrict) {
-  var offset = 0
-  function readSlice (n) {
-    offset += n
-    return buffer.slice(offset - n, offset)
-  }
-
-  function readUInt32 () {
-    var i = buffer.readUInt32LE(offset)
-    offset += 4
-    return i
-  }
-
-  function readUInt64 () {
-    var i = bufferutils.readUInt64LE(buffer, offset)
-    offset += 8
-    return i
-  }
-
-  function readVarInt () {
-    var vi = bufferutils.readVarInt(buffer, offset)
-    offset += vi.size
-    return vi.number
-  }
-
-  function readScript () {
-    return readSlice(readVarInt())
-  }
-
-  var tx = new Transaction()
-  tx.version = readUInt32()
-
-  var vinLen = readVarInt()
-  for (var i = 0; i < vinLen; ++i) {
-    tx.ins.push({
-      hash: readSlice(32),
-      index: readUInt32(),
-      script: readScript(),
-      sequence: readUInt32()
-    })
-  }
-
-  var voutLen = readVarInt()
-  for (i = 0; i < voutLen; ++i) {
-    tx.outs.push({
-      value: readUInt64(),
-      script: readScript()
-    })
-  }
-
-  tx.locktime = readUInt32()
-
-  if (__noStrict) return tx
-  if (offset !== buffer.length) throw new Error('Transaction has unexpected data')
-
-  return tx
-}
-
-Transaction.fromHex = function (hex) {
-  return Transaction.fromBuffer(new Buffer(hex, 'hex'))
-}
-
-Transaction.isCoinbaseHash = function (buffer) {
-  return Array.prototype.every.call(buffer, function (x) {
-    return x === 0
-  })
-}
-
-var EMPTY_SCRIPT = new Buffer(0)
-
-Transaction.prototype.addInput = function (hash, index, sequence, scriptSig) {
-  typeforce(types.tuple(
-    types.Hash256bit,
-    types.UInt32,
-    types.maybe(types.UInt32),
-    types.maybe(types.Buffer)
-  ), arguments)
-
-  if (types.Null(sequence)) {
-    sequence = Transaction.DEFAULT_SEQUENCE
-  }
-
-  // Add the input and return the input's index
-  return (this.ins.push({
-    hash: hash,
-    index: index,
-    script: scriptSig || EMPTY_SCRIPT,
-    sequence: sequence
-  }) - 1)
-}
-
-Transaction.prototype.addOutput = function (scriptPubKey, value) {
-  typeforce(types.tuple(types.Buffer, types.UInt53), arguments)
-
-  // Add the output and return the output's index
-  return (this.outs.push({
-    script: scriptPubKey,
-    value: value
-  }) - 1)
-}
-
-Transaction.prototype.byteLength = function () {
-  function scriptSize (someScript) {
-    var length = someScript.length
-
-    return bufferutils.varIntSize(length) + length
-  }
-
-  return (
-    8 +
-    bufferutils.varIntSize(this.ins.length) +
-    bufferutils.varIntSize(this.outs.length) +
-    this.ins.reduce(function (sum, input) { return sum + 40 + scriptSize(input.script) }, 0) +
-    this.outs.reduce(function (sum, output) { return sum + 8 + scriptSize(output.script) }, 0)
-  )
-}
-
-Transaction.prototype.clone = function () {
-  var newTx = new Transaction()
-  newTx.version = this.version
-  newTx.locktime = this.locktime
-
-  newTx.ins = this.ins.map(function (txIn) {
-    return {
-      hash: txIn.hash,
-      index: txIn.index,
-      script: txIn.script,
-      sequence: txIn.sequence
-    }
-  })
-
-  newTx.outs = this.outs.map(function (txOut) {
-    return {
-      script: txOut.script,
-      value: txOut.value
-    }
-  })
-
-  return newTx
-}
-
-var ONE = new Buffer('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
-var VALUE_UINT64_MAX = new Buffer('ffffffffffffffff', 'hex')
-
-/**
- * Hash transaction for signing a specific input.
- *
- * Bitcoin uses a different hash for each signed transaction input.
- * This method copies the transaction, makes the necessary changes based on the
- * hashType, and then hashes the result.
- * This hash can then be used to sign the provided transaction input.
- */
-Transaction.prototype.hashForSignature = function (inIndex, prevOutScript, hashType) {
-  typeforce(types.tuple(types.UInt32, types.Buffer, /* types.UInt8 */ types.Number), arguments)
-
-  // https://github.com/bitcoin/bitcoin/blob/master/src/test/sighash_tests.cpp#L29
-  if (inIndex >= this.ins.length) return ONE
-
-  var txTmp = this.clone()
-
-  // in case concatenating two scripts ends up with two codeseparators,
-  // or an extra one at the end, this prevents all those possible incompatibilities.
-  var hashScript = bscript.compile(bscript.decompile(prevOutScript).filter(function (x) {
-    return x !== opcodes.OP_CODESEPARATOR
-  }))
-  var i
-
-  // blank out other inputs' signatures
-  txTmp.ins.forEach(function (input) { input.script = EMPTY_SCRIPT })
-  txTmp.ins[inIndex].script = hashScript
-
-  // blank out some of the inputs
-  if ((hashType & 0x1f) === Transaction.SIGHASH_NONE) {
-    // wildcard payee
-    txTmp.outs = []
-
-    // let the others update at will
-    txTmp.ins.forEach(function (input, i) {
-      if (i !== inIndex) {
-        input.sequence = 0
-      }
-    })
-  } else if ((hashType & 0x1f) === Transaction.SIGHASH_SINGLE) {
-    var nOut = inIndex
-
-    // only lock-in the txOut payee at same index as txIn
-    // https://github.com/bitcoin/bitcoin/blob/master/src/test/sighash_tests.cpp#L60
-    if (nOut >= this.outs.length) return ONE
-
-    txTmp.outs = txTmp.outs.slice(0, nOut + 1)
-
-    // blank all other outputs (clear scriptPubKey, value === -1)
-    var stubOut = {
-      script: EMPTY_SCRIPT,
-      valueBuffer: VALUE_UINT64_MAX
-    }
-
-    for (i = 0; i < nOut; i++) {
-      txTmp.outs[i] = stubOut
-    }
-
-    // let the others update at will
-    txTmp.ins.forEach(function (input, i) {
-      if (i !== inIndex) {
-        input.sequence = 0
-      }
-    })
-  }
-
-  // blank out other inputs completely, not recommended for open transactions
-  if (hashType & Transaction.SIGHASH_ANYONECANPAY) {
-    txTmp.ins[0] = txTmp.ins[inIndex]
-    txTmp.ins = txTmp.ins.slice(0, 1)
-  }
-
-  // serialize and hash
-  var buffer = new Buffer(txTmp.byteLength() + 4)
-  buffer.writeInt32LE(hashType, buffer.length - 4)
-  txTmp.toBuffer().copy(buffer, 0)
-
-  return bcrypto.hash256(buffer)
-}
-
-Transaction.prototype.getHash = function () {
-  return bcrypto.hash256(this.toBuffer())
-}
-
-Transaction.prototype.getId = function () {
-  // transaction hash's are displayed in reverse order
-  return bufferutils.reverse(this.getHash()).toString('hex')
-}
-
-Transaction.prototype.toBuffer = function () {
-  var buffer = new Buffer(this.byteLength())
-
-  var offset = 0
-  function writeSlice (slice) {
-    slice.copy(buffer, offset)
-    offset += slice.length
-  }
-
-  function writeUInt32 (i) {
-    buffer.writeUInt32LE(i, offset)
-    offset += 4
-  }
-
-  function writeUInt64 (i) {
-    bufferutils.writeUInt64LE(buffer, i, offset)
-    offset += 8
-  }
-
-  function writeVarInt (i) {
-    var n = bufferutils.writeVarInt(buffer, i, offset)
-    offset += n
-  }
-
-  writeUInt32(this.version)
-  writeVarInt(this.ins.length)
-
-  this.ins.forEach(function (txIn) {
-    writeSlice(txIn.hash)
-    writeUInt32(txIn.index)
-    writeVarInt(txIn.script.length)
-    writeSlice(txIn.script)
-    writeUInt32(txIn.sequence)
-  })
-
-  writeVarInt(this.outs.length)
-  this.outs.forEach(function (txOut) {
-    if (!txOut.valueBuffer) {
-      writeUInt64(txOut.value)
-    } else {
-      writeSlice(txOut.valueBuffer)
-    }
-
-    writeVarInt(txOut.script.length)
-    writeSlice(txOut.script)
-  })
-
-  writeUInt32(this.locktime)
-
-  return buffer
-}
-
-Transaction.prototype.toHex = function () {
-  return this.toBuffer().toString('hex')
-}
-
-Transaction.prototype.setInputScript = function (index, scriptSig) {
-  typeforce(types.tuple(types.Number, types.Buffer), arguments)
-
-  this.ins[index].script = scriptSig
-}
-
-module.exports = Transaction
-
-}).call(this,require("buffer").Buffer)
-},{"./bufferutils":34,"./crypto":35,"./opcodes":42,"./script":43,"./types":46,"buffer":49,"typeforce":30}],45:[function(require,module,exports){
-(function (Buffer){
-var baddress = require('./address')
-var bcrypto = require('./crypto')
-var bscript = require('./script')
-var bufferutils = require('./bufferutils')
-var networks = require('./networks')
-var ops = require('./opcodes')
-
-var ECPair = require('./ecpair')
-var ECSignature = require('./ecsignature')
-var Transaction = require('./transaction')
-
-// re-orders signatures to match pubKeys, fills undefined otherwise
-function fixMSSignatures (transaction, vin, pubKeys, signatures, prevOutScript, hashType, skipPubKey) {
-  // maintain a local copy of unmatched signatures
-  var unmatched = signatures.slice()
-  var cache = {}
-
-  return pubKeys.map(function (pubKey) {
-    // skip optionally provided pubKey
-    if (skipPubKey && bufferutils.equal(skipPubKey, pubKey)) return undefined
-
-    var matched
-    var keyPair2 = ECPair.fromPublicKeyBuffer(pubKey)
-
-    // check for a matching signature
-    unmatched.some(function (signature, i) {
-      // skip if undefined || OP_0
-      if (!signature) return false
-
-      var signatureHash = cache[hashType] = cache[hashType] || transaction.hashForSignature(vin, prevOutScript, hashType)
-      if (!keyPair2.verify(signatureHash, signature)) return false
-
-      // remove matched signature from unmatched
-      unmatched[i] = undefined
-      matched = signature
-
-      return true
-    })
-
-    return matched || undefined
-  })
-}
-
-function extractInput (transaction, txIn, vin) {
-  var redeemScript
-  var scriptSig = txIn.script
-  var scriptSigChunks = bscript.decompile(scriptSig)
-
-  var prevOutScript
-  var prevOutType = bscript.classifyInput(scriptSig, true)
-  var scriptType
-
-  // Re-classify if scriptHash
-  if (prevOutType === 'scripthash') {
-    redeemScript = scriptSigChunks.slice(-1)[0]
-    prevOutScript = bscript.scriptHashOutput(bcrypto.hash160(redeemScript))
-
-    scriptSig = bscript.compile(scriptSigChunks.slice(0, -1))
-    scriptSigChunks = scriptSigChunks.slice(0, -1)
-
-    scriptType = bscript.classifyInput(scriptSig, true)
-  } else {
-    scriptType = prevOutType
-  }
-
-  // pre-empt redeemScript decompilation
-  var redeemScriptChunks
-  if (redeemScript) {
-    redeemScriptChunks = bscript.decompile(redeemScript)
-  }
-
-  // Extract hashType, pubKeys and signatures
-  var hashType, parsed, pubKeys, signatures
-
-  switch (scriptType) {
-    case 'pubkeyhash':
-      parsed = ECSignature.parseScriptSignature(scriptSigChunks[0])
-      hashType = parsed.hashType
-      pubKeys = scriptSigChunks.slice(1)
-      signatures = [parsed.signature]
-      prevOutScript = bscript.pubKeyHashOutput(bcrypto.hash160(pubKeys[0]))
-
-      break
-
-    case 'pubkey':
-      parsed = ECSignature.parseScriptSignature(scriptSigChunks[0])
-      hashType = parsed.hashType
-      signatures = [parsed.signature]
-
-      if (redeemScript) {
-        pubKeys = redeemScriptChunks.slice(0, 1)
-      }
-
-      break
-
-    case 'multisig':
-      signatures = scriptSigChunks.slice(1).map(function (chunk) {
-        if (chunk === ops.OP_0) return undefined
-
-        var parsed = ECSignature.parseScriptSignature(chunk)
-        hashType = parsed.hashType
-
-        return parsed.signature
-      })
-
-      if (redeemScript) {
-        pubKeys = redeemScriptChunks.slice(1, -2)
-
-        if (pubKeys.length !== signatures.length) {
-          signatures = fixMSSignatures(transaction, vin, pubKeys, signatures, redeemScript, hashType, redeemScript)
-        }
-      }
-
-      break
-  }
-
-  return {
-    hashType: hashType,
-    prevOutScript: prevOutScript,
-    prevOutType: prevOutType,
-    pubKeys: pubKeys,
-    redeemScript: redeemScript,
-    scriptType: scriptType,
-    signatures: signatures
-  }
-}
-
-function TransactionBuilder (network) {
-  this.prevTxMap = {}
-  this.prevOutScripts = {}
-  this.prevOutTypes = {}
-  this.network = network || networks.bitcoin
-
-  this.inputs = []
-  this.tx = new Transaction()
-}
-
-TransactionBuilder.fromTransaction = function (transaction, network) {
-  var txb = new TransactionBuilder(network)
-
-  // Copy other transaction fields
-  txb.tx.version = transaction.version
-  txb.tx.locktime = transaction.locktime
-
-  // Extract/add inputs
-  transaction.ins.forEach(function (txIn) {
-    txb.addInput(txIn.hash, txIn.index, txIn.sequence)
-  })
-
-  // Extract/add outputs
-  transaction.outs.forEach(function (txOut) {
-    txb.addOutput(txOut.script, txOut.value)
-  })
-
-  // Extract/add signatures
-  txb.inputs = transaction.ins.map(function (txIn, vin) {
-    // TODO: verify whether extractInput is sane with coinbase scripts
-    if (Transaction.isCoinbaseHash(txIn.hash)) {
-      throw new Error('coinbase inputs not supported')
-    }
-
-    // Ignore empty scripts
-    if (txIn.script.length === 0) return {}
-
-    return extractInput(transaction, txIn, vin)
-  })
-
-  return txb
-}
-
-TransactionBuilder.prototype.addInput = function (txHash, vout, sequence, prevOutScript) {
-  // is it a hex string?
-  if (typeof txHash === 'string') {
-    // transaction hashs's are displayed in reverse order, un-reverse it
-    txHash = new Buffer(txHash, 'hex')
-    Array.prototype.reverse.call(txHash)
-
-  // is it a Transaction object?
-  } else if (txHash instanceof Transaction) {
-    prevOutScript = txHash.outs[vout].script
-    txHash = txHash.getHash()
-  }
-
-  var input = {}
-  if (prevOutScript) {
-    var prevOutScriptChunks = bscript.decompile(prevOutScript)
-    var prevOutType = bscript.classifyOutput(prevOutScriptChunks)
-
-    // if we can, extract pubKey information
-    switch (prevOutType) {
-      case 'multisig':
-        input.pubKeys = prevOutScriptChunks.slice(1, -2)
-        input.signatures = input.pubKeys.map(function () { return undefined })
-
-        break
-
-      case 'pubkey':
-        input.pubKeys = prevOutScriptChunks.slice(0, 1)
-        input.signatures = [undefined]
-
-        break
-    }
-
-    if (prevOutType !== 'scripthash') {
-      input.scriptType = prevOutType
-    }
-
-    input.prevOutScript = prevOutScript
-    input.prevOutType = prevOutType
-  }
-
-  var valid = this.inputs.every(function (input2) {
-    if (input2.hashType === undefined) return true
-
-    return input2.hashType & Transaction.SIGHASH_ANYONECANPAY
-  })
-
-  if (!valid) throw new Error('No, this would invalidate signatures')
-
-  var prevOut = txHash.toString('hex') + ':' + vout
-  if (this.prevTxMap[prevOut]) throw new Error('Transaction is already an input')
-
-  var vin = this.tx.addInput(txHash, vout, sequence)
-  this.inputs[vin] = input
-  this.prevTxMap[prevOut] = vin
-
-  return vin
-}
-
-TransactionBuilder.prototype.addOutput = function (scriptPubKey, value) {
-  var valid = this.inputs.every(function (input) {
-    if (input.hashType === undefined) return true
-
-    return (input.hashType & 0x1f) === Transaction.SIGHASH_SINGLE
-  })
-
-  if (!valid) throw new Error('No, this would invalidate signatures')
-
-  // Attempt to get a script if it's a base58 address string
-  if (typeof scriptPubKey === 'string') {
-    scriptPubKey = baddress.toOutputScript(scriptPubKey, this.network)
-  }
-
-  return this.tx.addOutput(scriptPubKey, value)
-}
-
-TransactionBuilder.prototype.build = function () {
-  return this.__build(false)
-}
-TransactionBuilder.prototype.buildIncomplete = function () {
-  return this.__build(true)
-}
-
-var canBuildTypes = {
-  'multisig': true,
-  'pubkey': true,
-  'pubkeyhash': true
-}
-
-TransactionBuilder.prototype.__build = function (allowIncomplete) {
-  if (!allowIncomplete) {
-    if (!this.tx.ins.length) throw new Error('Transaction has no inputs')
-    if (!this.tx.outs.length) throw new Error('Transaction has no outputs')
-  }
-
-  var tx = this.tx.clone()
-
-  // Create script signatures from inputs
-  this.inputs.forEach(function (input, index) {
-    var scriptType = input.scriptType
-    var scriptSig
-
-    if (!allowIncomplete) {
-      if (!scriptType) throw new Error('Transaction is not complete')
-      if (!canBuildTypes[scriptType]) throw new Error(scriptType + ' not supported')
-
-      // XXX: only relevant to types that need signatures
-      if (!input.signatures) throw new Error('Transaction is missing signatures')
-    }
-
-    if (input.signatures) {
-      switch (scriptType) {
-        case 'pubkeyhash':
-          var pkhSignature = input.signatures[0].toScriptSignature(input.hashType)
-          scriptSig = bscript.pubKeyHashInput(pkhSignature, input.pubKeys[0])
-          break
-
-        case 'multisig':
-          var msSignatures = input.signatures.map(function (signature) {
-            return signature && signature.toScriptSignature(input.hashType)
-          })
-
-          // fill in blanks with OP_0
-          if (allowIncomplete) {
-            for (var i = 0; i < msSignatures.length; ++i) {
-              msSignatures[i] = msSignatures[i] || ops.OP_0
-            }
-
-          // remove blank signatures
-          } else {
-            msSignatures = msSignatures.filter(function (x) { return x })
-          }
-
-          var redeemScript = allowIncomplete ? undefined : input.redeemScript
-          scriptSig = bscript.multisigInput(msSignatures, redeemScript)
-          break
-
-        case 'pubkey':
-          var pkSignature = input.signatures[0].toScriptSignature(input.hashType)
-          scriptSig = bscript.pubKeyInput(pkSignature)
-          break
-      }
-    }
-
-    // did we build a scriptSig?
-    if (scriptSig) {
-      // wrap as scriptHash if necessary
-      if (input.prevOutType === 'scripthash') {
-        scriptSig = bscript.scriptHashInput(scriptSig, input.redeemScript)
-      }
-
-      tx.setInputScript(index, scriptSig)
-    }
-  })
-
-  return tx
-}
-
-TransactionBuilder.prototype.sign = function (index, keyPair, redeemScript, hashType) {
-  if (keyPair.network !== this.network) throw new Error('Inconsistent network')
-  if (!this.inputs[index]) throw new Error('No input at index: ' + index)
-  hashType = hashType || Transaction.SIGHASH_ALL
-
-  var input = this.inputs[index]
-  var canSign = input.hashType &&
-    input.prevOutScript &&
-    input.prevOutType &&
-    input.pubKeys &&
-    input.scriptType &&
-    input.signatures &&
-    input.signatures.length === input.pubKeys.length
-
-  var kpPubKey = keyPair.getPublicKeyBuffer()
-
-  // are we ready to sign?
-  if (canSign) {
-    // if redeemScript was provided, enforce consistency
-    if (redeemScript) {
-      if (!bufferutils.equal(input.redeemScript, redeemScript)) throw new Error('Inconsistent redeemScript')
-    }
-
-    if (input.hashType !== hashType) throw new Error('Inconsistent hashType')
-
-  // no? prepare
-  } else {
-    // must be pay-to-scriptHash?
-    if (redeemScript) {
-      // if we have a prevOutScript, enforce scriptHash equality to the redeemScript
-      if (input.prevOutScript) {
-        if (input.prevOutType !== 'scripthash') throw new Error('PrevOutScript must be P2SH')
-
-        var scriptHash = bscript.decompile(input.prevOutScript)[1]
-        if (!bufferutils.equal(scriptHash, bcrypto.hash160(redeemScript))) throw new Error('RedeemScript does not match ' + scriptHash.toString('hex'))
-      }
-
-      var scriptType = bscript.classifyOutput(redeemScript)
-      var redeemScriptChunks = bscript.decompile(redeemScript)
-      var pubKeys
-
-      switch (scriptType) {
-        case 'multisig':
-          pubKeys = redeemScriptChunks.slice(1, -2)
-
-          break
-
-        case 'pubkeyhash':
-          var pkh1 = redeemScriptChunks[2]
-          var pkh2 = bcrypto.hash160(keyPair.getPublicKeyBuffer())
-
-          if (!bufferutils.equal(pkh1, pkh2)) throw new Error('privateKey cannot sign for this input')
-          pubKeys = [kpPubKey]
-
-          break
-
-        case 'pubkey':
-          pubKeys = redeemScriptChunks.slice(0, 1)
-
-          break
-
-        default:
-          throw new Error('RedeemScript not supported (' + scriptType + ')')
-      }
-
-      // if we don't have a prevOutScript, generate a P2SH script
-      if (!input.prevOutScript) {
-        input.prevOutScript = bscript.scriptHashOutput(bcrypto.hash160(redeemScript))
-        input.prevOutType = 'scripthash'
-      }
-
-      input.pubKeys = pubKeys
-      input.redeemScript = redeemScript
-      input.scriptType = scriptType
-      input.signatures = pubKeys.map(function () { return undefined })
-    } else {
-      // pay-to-scriptHash is not possible without a redeemScript
-      if (input.prevOutType === 'scripthash') throw new Error('PrevOutScript is P2SH, missing redeemScript')
-
-      // if we don't have a scriptType, assume pubKeyHash otherwise
-      if (!input.scriptType) {
-        input.prevOutScript = bscript.pubKeyHashOutput(bcrypto.hash160(keyPair.getPublicKeyBuffer()))
-        input.prevOutType = 'pubkeyhash'
-        input.pubKeys = [kpPubKey]
-        input.scriptType = input.prevOutType
-        input.signatures = [undefined]
-      } else {
-        // throw if we can't sign with it
-        if (!input.pubKeys || !input.signatures) throw new Error(input.scriptType + ' not supported')
-      }
-    }
-
-    input.hashType = hashType
-  }
-
-  // ready to sign?
-  var signatureScript = input.redeemScript || input.prevOutScript
-  var signatureHash = this.tx.hashForSignature(index, signatureScript, hashType)
-
-  // enforce in order signing of public keys
-  var valid = input.pubKeys.some(function (pubKey, i) {
-    if (!bufferutils.equal(kpPubKey, pubKey)) return false
-    if (input.signatures[i]) throw new Error('Signature already exists')
-
-    var signature = keyPair.sign(signatureHash)
-    input.signatures[i] = signature
-
-    return true
-  })
-
-  if (!valid) throw new Error('Key pair cannot sign for this input')
-}
-
-module.exports = TransactionBuilder
-
-}).call(this,require("buffer").Buffer)
-},{"./address":32,"./bufferutils":34,"./crypto":35,"./ecpair":37,"./ecsignature":38,"./networks":41,"./opcodes":42,"./script":43,"./transaction":44,"buffer":49}],46:[function(require,module,exports){
-var typeforce = require('typeforce')
-
-function nBuffer (value, n) {
-  typeforce(types.Buffer, value)
-  if (value.length !== n) throw new Error('Expected ' + (n * 8) + '-bit Buffer, got ' + (value.length * 8) + '-bit Buffer')
-  return true
-}
-
-function Hash160bit (value) { return nBuffer(value, 20) }
-function Hash256bit (value) { return nBuffer(value, 32) }
-function Buffer256bit (value) { return nBuffer(value, 32) }
-
-var UINT53_MAX = Math.pow(2, 53) - 1
-function UInt2 (value) { return (value & 3) === value }
-function UInt8 (value) { return (value & 0xff) === value }
-function UInt32 (value) { return (value >>> 0) === value }
-function UInt53 (value) {
-  return typeforce.Number(value) &&
-    value >= 0 &&
-    value <= UINT53_MAX &&
-    Math.floor(value) === value
-}
-
-// external dependent types
-var BigInt = typeforce.quacksLike('BigInteger')
-var ECPoint = typeforce.quacksLike('Point')
-
-// exposed, external API
-var ECSignature = typeforce.compile({ r: BigInt, s: BigInt })
-var Network = typeforce.compile({
-  messagePrefix: typeforce.oneOf(typeforce.Buffer, typeforce.String),
-  bip32: {
-    public: UInt32,
-    private: UInt32
-  },
-  pubKeyHash: UInt8,
-  scriptHash: UInt8,
-  wif: UInt8,
-  dustThreshold: UInt53
-})
-
-// extend typeforce types with ours
-var types = {
-  BigInt: BigInt,
-  Buffer256bit: Buffer256bit,
-  ECPoint: ECPoint,
-  ECSignature: ECSignature,
-  Hash160bit: Hash160bit,
-  Hash256bit: Hash256bit,
-  Network: Network,
-  UInt2: UInt2,
-  UInt8: UInt8,
-  UInt32: UInt32,
-  UInt53: UInt53
-}
-
-for (var typeName in typeforce) {
-  types[typeName] = typeforce[typeName]
-}
-
-module.exports = types
-
-},{"typeforce":30}],47:[function(require,module,exports){
+},{"./hash":45,"buffer":56,"inherits":47}],54:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -7248,9 +7355,9 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":74}],48:[function(require,module,exports){
+},{"util/":81}],55:[function(require,module,exports){
 
-},{}],49:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -7262,7 +7369,7 @@ var objectKeys = Object.keys || function (obj) {
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
-var isArray = require('is-array')
+var isArray = require('isarray')
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -8719,7 +8826,7 @@ function utf8ToBytes (string, units) {
       }
 
       // valid surrogate pair
-      codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
     } else if (leadSurrogate) {
       // valid bmp char, but last char was a lead
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -8798,7 +8905,7 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":50,"ieee754":51,"is-array":52}],50:[function(require,module,exports){
+},{"base64-js":57,"ieee754":58,"isarray":59}],57:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -8924,7 +9031,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],51:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -9010,42 +9117,14 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],52:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
+var toString = {}.toString;
 
-/**
- * isArray
- */
-
-var isArray = Array.isArray;
-
-/**
- * toString
- */
-
-var str = Object.prototype.toString;
-
-/**
- * Whether or not the given `val`
- * is an array.
- *
- * example:
- *
- *        isArray([]);
- *        // > true
- *        isArray(arguments);
- *        // > false
- *        isArray('');
- *        // > false
- *
- * @param {mixed} val
- * @return {bool}
- */
-
-module.exports = isArray || function (val) {
-  return !! val && '[object Array]' == str.call(val);
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
 };
 
-},{}],53:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -9129,18 +9208,11 @@ EventEmitter.prototype.emit = function(type) {
         break;
       // slower
       default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
+        args = Array.prototype.slice.call(arguments, 1);
         handler.apply(this, args);
     }
   } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
+    args = Array.prototype.slice.call(arguments, 1);
     listeners = handler.slice();
     len = listeners.length;
     for (i = 0; i < len; i++)
@@ -9178,7 +9250,6 @@ EventEmitter.prototype.addListener = function(type, listener) {
 
   // Check for listener leak
   if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
     if (!isUndefined(this._maxListeners)) {
       m = this._maxListeners;
     } else {
@@ -9300,7 +9371,7 @@ EventEmitter.prototype.removeAllListeners = function(type) {
 
   if (isFunction(listeners)) {
     this.removeListener(type, listeners);
-  } else {
+  } else if (listeners) {
     // LIFO order
     while (listeners.length)
       this.removeListener(type, listeners[listeners.length - 1]);
@@ -9321,15 +9392,20 @@ EventEmitter.prototype.listeners = function(type) {
   return ret;
 };
 
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
 EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
+  return emitter.listenerCount(type);
 };
 
 function isFunction(arg) {
@@ -9348,9 +9424,9 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],54:[function(require,module,exports){
-arguments[4][12][0].apply(exports,arguments)
-},{"dup":12}],55:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
+arguments[4][13][0].apply(exports,arguments)
+},{"dup":13}],62:[function(require,module,exports){
 /**
  * Determine if an object is Buffer
  *
@@ -9369,12 +9445,12 @@ module.exports = function (obj) {
     ))
 }
 
-},{}],56:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],57:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -9467,10 +9543,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],58:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":59}],59:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":66}],66:[function(require,module,exports){
 // a duplex stream is just a stream that is both readable and writable.
 // Since JS doesn't have multiple prototypal inheritance, this class
 // prototypally inherits from Readable, and then parasitically from
@@ -9554,7 +9630,7 @@ function forEach (xs, f) {
   }
 }
 
-},{"./_stream_readable":61,"./_stream_writable":63,"core-util-is":64,"inherits":54,"process-nextick-args":65}],60:[function(require,module,exports){
+},{"./_stream_readable":68,"./_stream_writable":70,"core-util-is":71,"inherits":61,"process-nextick-args":72}],67:[function(require,module,exports){
 // a passthrough stream.
 // basically just the most minimal sort of Transform stream.
 // Every written chunk gets output as-is.
@@ -9583,7 +9659,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":62,"core-util-is":64,"inherits":54}],61:[function(require,module,exports){
+},{"./_stream_transform":69,"core-util-is":71,"inherits":61}],68:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -9605,10 +9681,10 @@ var Buffer = require('buffer').Buffer;
 
 Readable.ReadableState = ReadableState;
 
-var EE = require('events').EventEmitter;
+var EE = require('events');
 
 /*<replacement>*/
-if (!EE.listenerCount) EE.listenerCount = function(emitter, type) {
+var EElistenerCount = function(emitter, type) {
   return emitter.listeners(type).length;
 };
 /*</replacement>*/
@@ -9635,9 +9711,10 @@ util.inherits = require('inherits');
 
 
 /*<replacement>*/
-var debug = require('util');
-if (debug && debug.debuglog) {
-  debug = debug.debuglog('stream');
+var debugUtil = require('util');
+var debug;
+if (debugUtil && debugUtil.debuglog) {
+  debug = debugUtil.debuglog('stream');
 } else {
   debug = function () {};
 }
@@ -9647,8 +9724,9 @@ var StringDecoder;
 
 util.inherits(Readable, Stream);
 
+var Duplex;
 function ReadableState(options, stream) {
-  var Duplex = require('./_stream_duplex');
+  Duplex = Duplex || require('./_stream_duplex');
 
   options = options || {};
 
@@ -9714,8 +9792,9 @@ function ReadableState(options, stream) {
   }
 }
 
+var Duplex;
 function Readable(options) {
-  var Duplex = require('./_stream_duplex');
+  Duplex = Duplex || require('./_stream_duplex');
 
   if (!(this instanceof Readable))
     return new Readable(options);
@@ -9806,7 +9885,6 @@ function readableAddChunk(stream, state, chunk, encoding, addToFront) {
 }
 
 
-
 // if it's past the high water mark, we can push in some more.
 // Also, if we have no data yet, we can stand some
 // more bytes.  This is to work around cases where hwm=0,
@@ -9830,15 +9908,19 @@ Readable.prototype.setEncoding = function(enc) {
   return this;
 };
 
-// Don't raise the hwm > 128MB
+// Don't raise the hwm > 8MB
 var MAX_HWM = 0x800000;
-function roundUpToNextPowerOf2(n) {
+function computeNewHighWaterMark(n) {
   if (n >= MAX_HWM) {
     n = MAX_HWM;
   } else {
     // Get the next highest power of 2
     n--;
-    for (var p = 1; p < 32; p <<= 1) n |= n >> p;
+    n |= n >>> 1;
+    n |= n >>> 2;
+    n |= n >>> 4;
+    n |= n >>> 8;
+    n |= n >>> 16;
     n++;
   }
   return n;
@@ -9867,7 +9949,7 @@ function howMuchToRead(n, state) {
   // power of 2, to prevent increasing it excessively in tiny
   // amounts.
   if (n > state.highWaterMark)
-    state.highWaterMark = roundUpToNextPowerOf2(n);
+    state.highWaterMark = computeNewHighWaterMark(n);
 
   // don't have that much.  return null, unless we've ended.
   if (n > state.length) {
@@ -10133,6 +10215,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
   var ondrain = pipeOnDrain(src);
   dest.on('drain', ondrain);
 
+  var cleanedUp = false;
   function cleanup() {
     debug('cleanup');
     // cleanup event handlers once the pipe is broken
@@ -10144,6 +10227,8 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
     src.removeListener('end', onend);
     src.removeListener('end', cleanup);
     src.removeListener('data', ondata);
+
+    cleanedUp = true;
 
     // if the reader is waiting for a drain event from this
     // specific writer, then it would cause it to never start
@@ -10160,9 +10245,16 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
     debug('ondata');
     var ret = dest.write(chunk);
     if (false === ret) {
-      debug('false write response, pause',
-            src._readableState.awaitDrain);
-      src._readableState.awaitDrain++;
+      // If the user unpiped during `dest.write()`, it is possible
+      // to get stuck in a permanently paused state if that write
+      // also returned false.
+      if (state.pipesCount === 1 &&
+          state.pipes[0] === dest &&
+          src.listenerCount('data') === 1 &&
+          !cleanedUp) {
+        debug('false write response, pause', src._readableState.awaitDrain);
+        src._readableState.awaitDrain++;
+      }
       src.pause();
     }
   }
@@ -10173,7 +10265,7 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
     debug('onerror', er);
     unpipe();
     dest.removeListener('error', onerror);
-    if (EE.listenerCount(dest, 'error') === 0)
+    if (EElistenerCount(dest, 'error') === 0)
       dest.emit('error', er);
   }
   // This is a brutally ugly hack to make sure that our error handler
@@ -10184,7 +10276,6 @@ Readable.prototype.pipe = function(dest, pipeOpts) {
     dest._events.error.unshift(onerror);
   else
     dest._events.error = [onerror, dest._events.error];
-
 
 
   // Both close and finish should trigger unpipe, but only once.
@@ -10223,7 +10314,7 @@ function pipeOnDrain(src) {
     debug('pipeOnDrain', state.awaitDrain);
     if (state.awaitDrain)
       state.awaitDrain--;
-    if (state.awaitDrain === 0 && EE.listenerCount(src, 'data')) {
+    if (state.awaitDrain === 0 && EElistenerCount(src, 'data')) {
       state.flowing = true;
       flow(src);
     }
@@ -10439,7 +10530,6 @@ Readable.prototype.wrap = function(stream) {
 };
 
 
-
 // exposed for testing purposes only.
 Readable._fromList = fromList;
 
@@ -10464,6 +10554,8 @@ function fromList(n, state) {
     // read it all, truncate the array.
     if (stringMode)
       ret = list.join('');
+    else if (list.length === 1)
+      ret = list[0];
     else
       ret = Buffer.concat(list, length);
     list.length = 0;
@@ -10546,7 +10638,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require('_process'))
-},{"./_stream_duplex":59,"_process":57,"buffer":49,"core-util-is":64,"events":53,"inherits":54,"isarray":56,"process-nextick-args":65,"string_decoder/":72,"util":48}],62:[function(require,module,exports){
+},{"./_stream_duplex":66,"_process":64,"buffer":56,"core-util-is":71,"events":60,"inherits":61,"isarray":63,"process-nextick-args":72,"string_decoder/":79,"util":55}],69:[function(require,module,exports){
 // a transform stream is a readable/writable stream where you do
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
@@ -10745,9 +10837,9 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":59,"core-util-is":64,"inherits":54}],63:[function(require,module,exports){
+},{"./_stream_duplex":66,"core-util-is":71,"inherits":61}],70:[function(require,module,exports){
 // A bit simpler than readable streams.
-// Implement an async ._write(chunk, cb), and it'll handle all
+// Implement an async ._write(chunk, encoding, cb), and it'll handle all
 // the drain event emission and buffering.
 
 'use strict';
@@ -10769,6 +10861,13 @@ Writable.WritableState = WritableState;
 /*<replacement>*/
 var util = require('core-util-is');
 util.inherits = require('inherits');
+/*</replacement>*/
+
+
+/*<replacement>*/
+var internalUtil = {
+  deprecate: require('util-deprecate')
+};
 /*</replacement>*/
 
 
@@ -10796,8 +10895,9 @@ function WriteReq(chunk, encoding, cb) {
   this.next = null;
 }
 
+var Duplex;
 function WritableState(options, stream) {
-  var Duplex = require('./_stream_duplex');
+  Duplex = Duplex || require('./_stream_duplex');
 
   options = options || {};
 
@@ -10897,16 +10997,17 @@ WritableState.prototype.getBuffer = function writableStateGetBuffer() {
 
 (function (){try {
 Object.defineProperty(WritableState.prototype, 'buffer', {
-  get: require('util-deprecate')(function() {
+  get: internalUtil.deprecate(function() {
     return this.getBuffer();
-  }, '_writableState.buffer is deprecated. Use ' +
-      '_writableState.getBuffer() instead.')
+  }, '_writableState.buffer is deprecated. Use _writableState.getBuffer ' +
+     'instead.')
 });
 }catch(_){}}());
 
 
+var Duplex;
 function Writable(options) {
-  var Duplex = require('./_stream_duplex');
+  Duplex = Duplex || require('./_stream_duplex');
 
   // Writable ctor is applied to Duplexes, though they're not
   // instanceof Writable, they're instanceof Readable.
@@ -11267,7 +11368,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./_stream_duplex":59,"buffer":49,"core-util-is":64,"events":53,"inherits":54,"process-nextick-args":65,"util-deprecate":66}],64:[function(require,module,exports){
+},{"./_stream_duplex":66,"buffer":56,"core-util-is":71,"events":60,"inherits":61,"process-nextick-args":72,"util-deprecate":73}],71:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -11292,8 +11393,12 @@ function endWritable(stream, state, cb) {
 
 // NOTE: These type checking functions intentionally don't use `instanceof`
 // because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
+
+function isArray(arg) {
+  if (Array.isArray) {
+    return Array.isArray(arg);
+  }
+  return objectToString(arg) === '[object Array]';
 }
 exports.isArray = isArray;
 
@@ -11333,7 +11438,7 @@ function isUndefined(arg) {
 exports.isUndefined = isUndefined;
 
 function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
+  return objectToString(re) === '[object RegExp]';
 }
 exports.isRegExp = isRegExp;
 
@@ -11343,13 +11448,12 @@ function isObject(arg) {
 exports.isObject = isObject;
 
 function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
+  return objectToString(d) === '[object Date]';
 }
 exports.isDate = isDate;
 
 function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
+  return (objectToString(e) === '[object Error]' || e instanceof Error);
 }
 exports.isError = isError;
 
@@ -11368,19 +11472,24 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-function isBuffer(arg) {
-  return Buffer.isBuffer(arg);
-}
-exports.isBuffer = isBuffer;
+exports.isBuffer = Buffer.isBuffer;
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
-}).call(this,{"isBuffer":require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":55}],65:[function(require,module,exports){
+
+}).call(this,{"isBuffer":require("../../../../insert-module-globals/node_modules/is-buffer/index.js")})
+},{"../../../../insert-module-globals/node_modules/is-buffer/index.js":62}],72:[function(require,module,exports){
 (function (process){
 'use strict';
-module.exports = nextTick;
+
+if (!process.version ||
+    process.version.indexOf('v0.') === 0 ||
+    process.version.indexOf('v1.') === 0 && process.version.indexOf('v1.8.') !== 0) {
+  module.exports = nextTick;
+} else {
+  module.exports = process.nextTick;
+}
 
 function nextTick(fn) {
   var args = new Array(arguments.length - 1);
@@ -11394,7 +11503,7 @@ function nextTick(fn) {
 }
 
 }).call(this,require('_process'))
-},{"_process":57}],66:[function(require,module,exports){
+},{"_process":64}],73:[function(require,module,exports){
 (function (global){
 
 /**
@@ -11465,10 +11574,10 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],67:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":60}],68:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":67}],75:[function(require,module,exports){
 var Stream = (function (){
   try {
     return require('st' + 'ream'); // hack to fix a circular dependency issue when used with browserify
@@ -11482,13 +11591,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":59,"./lib/_stream_passthrough.js":60,"./lib/_stream_readable.js":61,"./lib/_stream_transform.js":62,"./lib/_stream_writable.js":63}],69:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":66,"./lib/_stream_passthrough.js":67,"./lib/_stream_readable.js":68,"./lib/_stream_transform.js":69,"./lib/_stream_writable.js":70}],76:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":62}],70:[function(require,module,exports){
+},{"./lib/_stream_transform.js":69}],77:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":63}],71:[function(require,module,exports){
+},{"./lib/_stream_writable.js":70}],78:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11617,7 +11726,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":53,"inherits":54,"readable-stream/duplex.js":58,"readable-stream/passthrough.js":67,"readable-stream/readable.js":68,"readable-stream/transform.js":69,"readable-stream/writable.js":70}],72:[function(require,module,exports){
+},{"events":60,"inherits":61,"readable-stream/duplex.js":65,"readable-stream/passthrough.js":74,"readable-stream/readable.js":75,"readable-stream/transform.js":76,"readable-stream/writable.js":77}],79:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11840,14 +11949,14 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":49}],73:[function(require,module,exports){
+},{"buffer":56}],80:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],74:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -12437,23 +12546,5 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":73,"_process":57,"inherits":54}],"bitcoinjs-lib-dash":[function(require,module,exports){
-module.exports = {
-  Block: require('./block'),
-  ECPair: require('./ecpair'),
-  ECSignature: require('./ecsignature'),
-  HDNode: require('./hdnode'),
-  Transaction: require('./transaction'),
-  TransactionBuilder: require('./transaction_builder'),
-
-  address: require('./address'),
-  bufferutils: require('./bufferutils'),
-  crypto: require('./crypto'),
-  message: require('./message'),
-  networks: require('./networks'),
-  opcodes: require('./opcodes'),
-  script: require('./script')
-}
-
-},{"./address":32,"./block":33,"./bufferutils":34,"./crypto":35,"./ecpair":37,"./ecsignature":38,"./hdnode":39,"./message":40,"./networks":41,"./opcodes":42,"./script":43,"./transaction":44,"./transaction_builder":45}]},{},[])("bitcoinjs-lib-dash")
+},{"./support/isBuffer":80,"_process":64,"inherits":61}]},{},[1])(1)
 });
